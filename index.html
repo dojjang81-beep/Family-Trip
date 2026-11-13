@@ -3,104 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>가족여행 계획 ✈️</title>
+  <title>우리 가족 간사이 여행 플래너</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif; background-color: #f3f4f6; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif; background-color: #f8fafc; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    #exploreMap { height: 295px; width: 100%; border-radius: 1rem; z-index: 10; }
-    #routeMap { height: 250px; width: 100%; border-radius: 1rem; z-index: 10; }
-    .custom-pin-wrapper { background: transparent; border: none; }
+    .leaflet-popup-content-wrapper { border-radius: 14px; }
   </style>
 </head>
-<body class="text-gray-800 pb-24">
+<body class="pb-20 text-gray-800 select-none">
 
   <!-- 프로필 선택 모달 -->
-  <div id="profileModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
-      <div class="text-4xl mb-2">✈️ 🧳</div>
-      <h2 class="text-xl font-bold mb-1">가족여행 계획</h2>
-      <p class="text-sm text-gray-500 mb-5">누가 접속했나요? 이름을 선택해 주세요!</p>
-      <div class="grid grid-cols-2 gap-3" id="profileButtons"></div>
+  <div id="profileModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+      <div class="text-center">
+        <div class="text-3xl mb-1">✈️</div>
+        <h2 class="text-lg font-extrabold text-gray-900">누가 접속했나요?</h2>
+        <p class="text-xs text-gray-500 mt-1">선택한 가족 구성원에 맞춰 장소와 쇼핑템을 추천해 드려요!</p>
+      </div>
+      <div id="profileButtons" class="grid grid-cols-2 gap-2.5"></div>
     </div>
   </div>
 
-  <!-- 사후 위치 지정/수정 모달 -->
-  <div id="locPickerModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl p-5 w-full max-w-md shadow-xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-indigo-700">📍 실제 지도 위치 연결하기</h3>
-        <button onclick="closeLocPickerModal()" class="text-gray-400 hover:text-gray-600 text-sm font-bold">닫기 ✕</button>
+  <!-- 영수 전용 큰틀 설정 모달 -->
+  <div id="masterModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl max-h-[88vh] overflow-y-auto space-y-3">
+      <div class="flex justify-between items-center border-b pb-2.5">
+        <h3 class="font-extrabold text-base text-indigo-950">⚙️ 여행 큰틀 설정 (총괄 전용)</h3>
+        <button onclick="closeMasterModal()" class="text-gray-400 hover:text-gray-700 text-lg font-bold">✕</button>
       </div>
-      <p class="text-xs text-gray-500" id="locPickerTargetName">대상 항목</p>
-      <div class="flex gap-1.5">
-        <input type="text" id="locPickerSearchInput" placeholder="예: 이치란 도톤보리, 청수사, 유니버설..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-indigo-500" oninput="onLocPickerSearchInput()" onkeypress="if(event.key==='Enter') runLocPickerSearch()" />
-        <button onclick="runLocPickerSearch()" class="bg-indigo-600 text-white font-bold px-3.5 py-2 rounded-xl text-xs shrink-0">검색</button>
-      </div>
-      <div id="locPickerResults" class="max-h-60 overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-xl bg-gray-50/50">
-        <div class="p-4 text-center text-xs text-gray-400">장소명을 입력하면 간사이(오사카·교토·고베·나라) 위치를 찾아드립니다.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 메인(영수) 전용 큰틀 설정 모달 -->
-  <div id="masterModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
-    <div class="bg-white rounded-2xl p-5 w-full max-w-md shadow-xl space-y-3 my-8 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-base text-indigo-700">⚙️ 여행 큰틀 설정 (영수 전용)</h3>
-        <button onclick="closeMasterModal()" class="text-gray-400 hover:text-gray-600 text-sm font-bold">닫기 ✕</button>
-      </div>
-
-      <!-- 출발일 & 가는 편 비행기 -->
-      <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5 space-y-2">
-        <div class="flex items-center justify-between">
-          <label class="text-xs font-extrabold text-blue-800">🛫 출발일 & 가는 편 항공기</label>
-          <input type="date" id="cfgStartDate" onchange="onDateRangeChange()" class="bg-white border border-blue-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-800" />
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <span class="block text-[10px] font-bold text-gray-500 mb-0.5">편명 / 항공사</span>
-            <input type="text" id="cfgOutFlightNo" placeholder="예: 아시아나 OZ112" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-medium" />
-          </div>
-          <div>
-            <span class="block text-[10px] font-bold text-gray-500 mb-0.5">출발 ~ 도착 시간</span>
-            <input type="text" id="cfgOutFlightTime" placeholder="예: 09:00 → 10:50" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-medium" />
-          </div>
-        </div>
-      </div>
-
-      <!-- 귀국일 & 오는 편 비행기 -->
-      <div class="bg-amber-50/70 border border-amber-100 rounded-xl p-2.5 space-y-2">
-        <div class="flex items-center justify-between">
-          <label class="text-xs font-extrabold text-amber-900">🛬 귀국일 & 오는 편 항공기</label>
-          <input type="date" id="cfgEndDate" onchange="onDateRangeChange()" class="bg-white border border-amber-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-800" />
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <span class="block text-[10px] font-bold text-gray-500 mb-0.5">편명 / 항공사</span>
-            <input type="text" id="cfgInFlightNo" placeholder="예: 아시아나 OZ115" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-medium" />
-          </div>
-          <div>
-            <span class="block text-[10px] font-bold text-gray-500 mb-0.5">출발 ~ 도착 시간</span>
-            <input type="text" id="cfgInFlightTime" placeholder="예: 19:30 → 21:20" class="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-medium" />
-          </div>
-        </div>
-      </div>
-
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">🏨 숙소 이름</label>
-          <input type="text" id="cfgHotel" placeholder="예: 난바 오리엔탈 호텔" class="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs" />
+          <label class="text-[11px] font-bold text-gray-600">출국일</label>
+          <input type="date" id="cfgStartDate" onchange="onDateRangeChange()" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">📍 숙소 권역 (출발/복귀 기준)</label>
-          <select id="cfgHotelArea" class="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs">
+          <label class="text-[11px] font-bold text-gray-600">귀국일</label>
+          <input type="date" id="cfgEndDate" onchange="onDateRangeChange()" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">출국 편명</label>
+          <input type="text" id="cfgOutFlightNo" placeholder="예: KE723" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">출국 시간</label>
+          <input type="text" id="cfgOutFlightTime" placeholder="예: 09:35 -> 11:25" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">귀국 편명</label>
+          <input type="text" id="cfgInFlightNo" placeholder="예: KE726" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">귀국 시간</label>
+          <input type="text" id="cfgInFlightTime" placeholder="예: 18:30 -> 20:25" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">숙소명</label>
+          <input type="text" id="cfgHotel" placeholder="예: 난바 오리엔탈 호텔" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
+        </div>
+        <div>
+          <label class="text-[11px] font-bold text-gray-600">숙소 거점 권역</label>
+          <select id="cfgHotelArea" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5">
             <option value="namba">오사카 · 난바/도톤보리</option>
             <option value="umeda">오사카 · 우메다/오사카역</option>
-            <option value="shinsaibashi">오사카 · 신사이바시/혼마치</option>
+            <option value="shinsaibashi">오사카 · 신사이바시</option>
             <option value="tennoji">오사카 · 덴노지/신세카이</option>
             <option value="usj">오사카 · 유니버설 시티</option>
             <option value="kyoto">교토 · 교토역/가와라마치</option>
@@ -108,301 +83,261 @@
           </select>
         </div>
       </div>
-
       <div>
-        <label class="block text-xs font-bold text-gray-600 mb-1">🏨 숙소 주소 / 비상 메모</label>
-        <input type="text" id="cfgHotelAddr" placeholder="현지 주소 및 체크인 코드" class="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs" />
+        <label class="text-[11px] font-bold text-gray-600">숙소 주소 / 체크인 메모</label>
+        <input type="text" id="cfgHotelAddr" placeholder="주소 또는 체크인 시간 메모" class="w-full bg-gray-50 border rounded-xl px-2.5 py-1.5 text-xs mt-0.5" />
       </div>
-
-      <div class="space-y-1.5">
-        <label class="block text-xs font-bold text-gray-600">🗓️ 일자별 거점 도시/권역 세팅</label>
+      <div>
+        <label class="text-[11px] font-bold text-gray-600 block mb-1">일차별 메인 거점</label>
         <div id="cfgDaysContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
-
-      <button onclick="saveMasterConfig()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-sm">
-        설정 저장하고 가족 화면에 반영하기
-      </button>
+      <button onclick="saveMasterConfig()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow">저장하기</button>
     </div>
   </div>
 
-  <!-- 상단 헤더 & 고정 브리핑 & 실시간 환율 계산기 -->
-  <header class="bg-indigo-600 text-white sticky top-0 z-30 shadow-md">
-    <div class="max-w-lg mx-auto px-4 py-2.5 space-y-2">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-1.5">
-          <span class="text-lg">✈️</span>
-          <h1 class="font-bold text-base tracking-tight">가족여행 계획</h1>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <button id="masterEditBtn" onclick="openMasterModal()" class="hidden bg-amber-400 text-indigo-950 px-2.5 py-1 rounded-full text-[11px] font-extrabold shadow-sm">
-            ⚙️ 큰틀설정
-          </button>
-          <button onclick="openProfileModal()" id="currentUserBadge" class="bg-indigo-500 hover:bg-indigo-400 px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 border border-indigo-400">
-            <span>👤 선택</span>
-          </button>
-        </div>
+  <!-- 사후 위치 지정/수정 모달 -->
+  <div id="locPickerModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-extrabold text-sm text-gray-900">📍 지도 위치 연결하기</h3>
+        <button onclick="closeLocPickerModal()" class="text-gray-400 hover:text-gray-700 font-bold">✕</button>
       </div>
-
-      <!-- 최상단 고정 여행 브리핑 카드 -->
-      <div onclick="toggleBriefing()" class="bg-indigo-800/70 rounded-xl px-3 py-2 text-xs cursor-pointer border border-indigo-500/40">
-        <div class="flex justify-between items-center">
-          <div class="truncate pr-2 font-medium" id="briefingSummary">📅 여행 일정을 설정해 주세요</div>
-          <span class="text-[10px] text-indigo-200 shrink-0" id="briefingArrow">상세 ▼</span>
-        </div>
-        <div id="briefingDetail" class="hidden mt-2 pt-2 border-t border-indigo-500/40 space-y-1 text-[11px] text-indigo-100">
-          <div id="briefingOutFlight"></div>
-          <div id="briefingInFlight"></div>
-          <div id="briefingAddr"></div>
-          <div id="briefingDays" class="grid grid-cols-2 gap-1 pt-1 text-amber-200 font-medium"></div>
-        </div>
+      <div id="locPickerTargetName" class="text-xs text-gray-500"></div>
+      <div class="flex gap-1.5">
+        <input type="text" id="locPickerSearchInput" oninput="onLocPickerSearchInput()" placeholder="장소명 입력..." class="flex-1 bg-gray-50 border rounded-xl px-3 py-2 text-xs" />
+        <button onclick="runLocPickerSearch()" class="bg-indigo-600 text-white text-xs font-bold px-3 rounded-xl">검색</button>
       </div>
+      <div id="locPickerResults" class="max-h-60 overflow-y-auto divide-y divide-gray-100 border rounded-xl"></div>
+    </div>
+  </div>
 
-      <!-- 실시간 엔화 계산기 -->
-      <div class="bg-indigo-700/80 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-xs gap-1.5">
-        <div class="flex items-center gap-1 shrink-0">
-          <span class="font-medium text-indigo-100 text-[11px]" id="fxRateLabel">💴 100¥≈905원</span>
-          <button onclick="fetchLiveFxRate(true)" id="fxRefreshBtn" class="bg-indigo-500/80 hover:bg-indigo-400 text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-indigo-400/50 transition">
-            🔄 실시간
-          </button>
+  <!-- 상단 고정 헤더 -->
+  <header class="sticky top-0 z-30 bg-indigo-950 text-white shadow-md">
+    <div class="max-w-lg mx-auto px-4 py-2.5 flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-1.5">
+          <h1 class="font-extrabold text-sm tracking-tight">🇯🇵 간사이 패밀리 플래너</h1>
+          <span id="dbCountBadge" class="text-[10px] bg-amber-400 text-indigo-950 font-extrabold px-1.5 py-0.5 rounded-full">DB 92곳</span>
         </div>
-        <div class="flex items-center gap-1 flex-1 min-w-0">
-          <input type="number" id="jpyInput" placeholder="엔화 입력" oninput="calcKrw()" class="w-full bg-white/10 text-white placeholder-indigo-300 px-2 py-0.5 rounded text-right font-bold focus:outline-none" />
-          <span class="text-indigo-200">¥</span>
-        </div>
-        <span class="text-indigo-300">=</span>
-        <div class="font-bold text-amber-300 shrink-0 min-w-[74px] text-right" id="krwOutput">0 원</div>
+        <p id="briefingSummary" class="text-[11px] text-indigo-200 mt-0.5">📅 일정 불러오는 중...</p>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button id="masterEditBtn" onclick="openMasterModal()" class="hidden bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-xl">⚙️ 큰틀설정</button>
+        <button id="currentUserBadge" onclick="openProfileModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1 shadow-sm">
+          <span>👤 선택</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 접이식 여행 브리핑 바 -->
+    <div class="max-w-lg mx-auto px-4 pb-2">
+      <div onclick="toggleBriefing()" class="bg-indigo-900/80 rounded-xl px-3 py-1.5 flex justify-between items-center cursor-pointer text-[11px] text-indigo-100">
+        <span id="personaBanner" class="font-bold text-amber-300">✨ 맞춤 추천 모드 활성화</span>
+        <span id="briefingArrow" class="text-[10px] text-indigo-300">상세 ▼</span>
+      </div>
+      <div id="briefingDetail" class="hidden mt-1.5 bg-indigo-900/90 rounded-xl p-3 text-[11px] text-indigo-100 space-y-1">
+        <div id="briefingOutFlight"></div>
+        <div id="briefingInFlight"></div>
+        <div id="briefingAddr"></div>
+        <div id="briefingDays" class="grid grid-cols-2 gap-1 pt-1 border-t border-indigo-800 text-indigo-200"></div>
       </div>
     </div>
   </header>
 
-  <!-- 메인 콘텐츠 -->
-  <main class="max-w-lg mx-auto px-4 pt-3">
-    <div id="dbStatus" class="hidden bg-amber-100 border border-amber-300 text-amber-800 text-xs p-3 rounded-xl mb-3">
-      ⚠️ Firebase 연결에 문제가 있습니다. 네트워크 또는 권한 규칙을 확인해 주세요.
-    </div>
+  <div id="dbStatus" class="hidden max-w-lg mx-auto bg-red-100 text-red-700 text-xs p-2 text-center font-bold">
+    ⚠️ Firebase 연결에 실패했습니다. 오프라인 기본 DB 모드로 동작합니다.
+  </div>
 
-    <!-- ================================================================= -->
-    <!-- 첫 화면(탭 1): 간사이 전역(오사카·교토·고베·나라) 인기순 맞춤 지도 -->
-    <!-- ================================================================= -->
+  <!-- 메인 콘텐츠 컨테이너 -->
+  <main class="max-w-lg mx-auto px-3.5 pt-3 space-y-3">
+
+    <!-- [TAB 1] 맞춤지도 · 상점 탐색 -->
     <section id="tab-map" class="space-y-3">
-      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
-        <div class="flex justify-between items-center">
-          <span id="personaBanner" class="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg">✨ 맞춤 추천 모드</span>
-          <span id="mapAreaBadge" class="text-[11px] font-bold text-gray-500">오사카 · 난바</span>
-        </div>
-
-        <!-- 테마 필터 -->
-        <div class="flex gap-1 overflow-x-auto no-scrollbar pb-0.5" id="mapThemeFilters">
-          <button onclick="setMapTheme('persona')" data-theme="persona" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shrink-0">✨ 내 취향맞춤</button>
-          <button onclick="setMapTheme('goods')" data-theme="goods" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 shrink-0">🧸 문구·캐릭터</button>
-          <button onclick="setMapTheme('value')" data-theme="value" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 shrink-0">🛍️ 가성비·드럭</button>
-          <button onclick="setMapTheme('cvs')" data-theme="cvs" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 shrink-0">🏪 편의점</button>
-          <button onclick="setMapTheme('spot')" data-theme="spot" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 shrink-0">🎢 명소·맛집</button>
-        </div>
-
-        <!-- 주요 지역 빠른 이동 바 + 좌우 스크롤 화살표 버튼 -->
-        <div class="flex items-center gap-1">
-          <button onclick="scrollHorizontalBar('areaQuickScroll', -180)" aria-label="이전 지역" class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-extrabold text-xs flex items-center justify-center shrink-0 border border-gray-200">
-            ◀
-          </button>
-          <div id="areaQuickScroll" class="flex gap-1.5 overflow-x-auto no-scrollbar flex-1 py-0.5 scroll-smooth">
-            <button onclick="flyToArea(34.6687, 135.5013, 14)" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold rounded-lg shrink-0">오사카 · 난바</button>
-            <button onclick="flyToArea(34.7024, 135.4959, 14)" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold rounded-lg shrink-0">오사카 · 우메다</button>
-            <button onclick="flyToArea(34.6654, 135.4323, 14)" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold rounded-lg shrink-0">유니버설(USJ)</button>
-            <button onclick="flyToArea(34.6873, 135.5262, 14)" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold rounded-lg shrink-0">오사카성</button>
-            <button onclick="flyToArea(34.6525, 135.5063, 14)" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold rounded-lg shrink-0">신세카이·덴노지</button>
-            <button onclick="flyToArea(35.0010, 135.7720, 13)" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-[11px] font-bold rounded-lg shrink-0">교토 · 시내/청수사</button>
-            <button onclick="flyToArea(35.0169, 135.6713, 14)" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-[11px] font-bold rounded-lg shrink-0">교토 · 아라시야마</button>
-            <button onclick="flyToArea(34.9671, 135.7727, 14)" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-[11px] font-bold rounded-lg shrink-0">교토 · 후시미이나리</button>
-            <button onclick="flyToArea(34.6860, 135.1900, 13)" class="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 text-[11px] font-bold rounded-lg shrink-0">고베 · 하버랜드/시내</button>
-            <button onclick="flyToArea(34.6845, 135.8340, 14)" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 text-[11px] font-bold rounded-lg shrink-0">나라 · 사슴공원</button>
-          </div>
-          <button onclick="scrollHorizontalBar('areaQuickScroll', 180)" aria-label="다음 지역" class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-extrabold text-xs flex items-center justify-center shrink-0 border border-gray-200">
-            ▶
-          </button>
-        </div>
-
-        <div id="exploreMap"></div>
-        <p class="text-[11px] text-gray-400 text-center" id="mapGuideText">👆 지역 버튼을 누르거나 지도를 움직이면 한국인 인기 TOP 6+ 스팟이 자동 추천됩니다!</p>
+      <!-- 권역 빠른 이동 버튼 -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+        <button onclick="flyToArea(34.6687, 135.5013, 14)" class="bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 shadow-sm">🏯 난바·도톤보리</button>
+        <button onclick="flyToArea(34.7024, 135.4959, 14)" class="bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 shadow-sm">🏙️ 우메다</button>
+        <button onclick="flyToArea(34.6654, 135.4323, 14)" class="bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 shadow-sm">🎢 USJ·항구</button>
+        <button onclick="flyToArea(35.0038, 135.7689, 13)" class="bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 shadow-sm">⛩️ 교토</button>
+        <button onclick="flyToArea(34.6881, 135.1881, 13)" class="bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 shadow-sm">🚢 고베</button>
+        <button onclick="flyToArea(34.6851, 135.8430, 14)" class="bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 shadow-sm">🦌 나라</button>
       </div>
 
-      <div id="mapSpotCards" class="space-y-3"></div>
+      <!-- 지도 컨테이너 -->
+      <div class="relative rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+        <div id="exploreMap" class="h-60 w-full z-10"></div>
+        <span id="mapAreaBadge" class="absolute top-2.5 left-2.5 z-20 bg-slate-900/85 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">오사카 · 난바 중심</span>
+      </div>
+
+      <!-- 1차 필터: 테마별 -->
+      <div class="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button onclick="setMapTheme('persona')" data-theme="persona" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 bg-indigo-600 text-white shadow-sm">✨ 내 취향맞춤</button>
+          <button onclick="setMapTheme('goods')" data-theme="goods" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 bg-gray-100 text-gray-600">🧸 문구·캐릭터</button>
+          <button onclick="setMapTheme('value')" data-theme="value" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 bg-gray-100 text-gray-600">🛍️ 가성비·드럭</button>
+          <button onclick="setMapTheme('spot')" data-theme="spot" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 bg-gray-100 text-gray-600">🎢 명소·맛집</button>
+          <button onclick="setMapTheme('cvs')" data-theme="cvs" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 bg-gray-100 text-gray-600">🏪 편의점</button>
+        </div>
+
+        <!-- 2차 필터: 상황별 맞춤 (비오는날/아이취향/식사/야경) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 border-t border-gray-100">
+          <span class="text-[10px] font-extrabold text-gray-400 shrink-0">상황:</span>
+          <button onclick="setMapSituation('all')" data-sit="all" class="msit-btn px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 bg-slate-800 text-white">전체</button>
+          <button onclick="setMapSituation('indoor')" data-sit="indoor" class="msit-btn px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 bg-gray-100 text-gray-600">☔ 비/실내쾌적</button>
+          <button onclick="setMapSituation('kids')" data-sit="kids" class="msit-btn px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 bg-gray-100 text-gray-600">👦 아이들(중3·초6)</button>
+          <button onclick="setMapSituation('food')" data-sit="food" class="msit-btn px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 bg-gray-100 text-gray-600">🍽️ 식사·간식</button>
+          <button onclick="setMapSituation('night')" data-sit="night" class="msit-btn px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 bg-gray-100 text-gray-600">🌃 야경·저녁</button>
+        </div>
+      </div>
+
+      <div id="mapGuideText" class="text-[11px] text-indigo-900 bg-indigo-50 px-3 py-2 rounded-xl font-medium"></div>
+      <div id="mapSpotCards" class="space-y-2.5"></div>
     </section>
 
-    <!-- ================================================================= -->
-    <!-- 탭 2: 2단계 바구니 (실시간 장소 자동완성 + 위치 상태 시각화) -->
-    <!-- ================================================================= -->
+    <!-- [TAB 2] 바구니 · 투표 -->
     <section id="tab-basket" class="hidden space-y-3">
-      <div class="grid grid-cols-2 bg-gray-200 p-1 rounded-xl text-xs font-bold">
-        <button onclick="setBasketMode('personal')" id="btnModePersonal" class="py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition">
-          1단계: 개인 바구니 (탐색·투표)
-        </button>
-        <button onclick="setBasketMode('family')" id="btnModeFamily" class="py-2 rounded-lg text-gray-500 transition">
-          2단계: 통합 가족 바구니 🌟
-        </button>
+      <!-- 새 항목 추가 폼 -->
+      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2 relative">
+        <div class="flex gap-1.5">
+          <select id="itemType" onchange="onItemTypeChange()" class="bg-gray-100 rounded-xl px-2.5 py-2 text-xs font-bold text-gray-700">
+            <option value="place">📍 장소</option>
+            <option value="food">🍜 먹거리</option>
+            <option value="shop">🛍️ 살것</option>
+          </select>
+          <select id="itemPrefDay" class="bg-gray-100 rounded-xl px-2.5 py-2 text-xs font-bold text-gray-700 flex-1"></select>
+        </div>
+        <div class="relative">
+          <input type="text" id="itemTitle" oninput="onBasketTitleInput()" placeholder="장소/맛집 이름 입력 (DB+지도 자동검색)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs" />
+          <div id="titleAutoCompleteBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-indigo-200 rounded-xl shadow-lg z-30 divide-y divide-gray-100 max-h-56 overflow-y-auto"></div>
+        </div>
+        <div id="selectedLocIndicator" class="hidden flex items-center justify-between bg-emerald-50 text-emerald-800 text-[11px] px-2.5 py-1.5 rounded-lg font-bold">
+          <span id="selectedLocText" class="truncate"></span>
+          <button type="button" onclick="clearPendingLocation()" class="text-emerald-600 ml-2 shrink-0">✕</button>
+        </div>
+        <div class="flex gap-1.5">
+          <input type="text" id="itemMemo" placeholder="간단 메모 (추천 메뉴, 영업시간 등)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs" />
+          <button onclick="addBasketItem()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs shrink-0">+ 담기</button>
+        </div>
       </div>
 
-      <div id="viewPersonalBasket" class="space-y-3">
-        <div class="flex gap-1.5 overflow-x-auto no-scrollbar" id="memberBasketTabs"></div>
+      <!-- 개인 / 통합 가족 바구니 전환 -->
+      <div class="grid grid-cols-2 bg-gray-200/80 p-1 rounded-xl text-xs font-extrabold">
+        <button id="btnModePersonal" onclick="setBasketMode('personal')" class="py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition">👤 개인별 바구니</button>
+        <button id="btnModeFamily" onclick="setBasketMode('family')" class="py-2 rounded-lg text-gray-500 transition">🌟 통합 가족 바구니</button>
+      </div>
 
-        <!-- 입력 폼 + 실시간 장소 검색 드롭다운 -->
-        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2 relative">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-gray-700">✨ 내 바구니에 희망사항 추가</span>
-            <button onclick="switchTab('map')" class="text-[11px] bg-indigo-50 text-indigo-600 font-bold px-2 py-1 rounded-lg">🗺️ 지도에서 고르기 →</button>
-          </div>
-          <div class="flex gap-1.5">
-            <select id="itemType" onchange="onItemTypeChange()" class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-2 text-xs font-bold">
-              <option value="place">📍 장소</option>
-              <option value="food">🍜 먹거리</option>
-              <option value="shop">🛍️ 살것</option>
-            </select>
-            <select id="itemPrefDay" class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-2 text-xs font-medium"></select>
-            <div class="relative flex-1 min-w-0">
-              <input type="text" id="itemTitle" oninput="onBasketTitleInput()" autocomplete="off" placeholder="장소/맛집 이름 입력 (자동검색)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:border-indigo-500" />
-            </div>
-          </div>
-
-          <!-- 실시간 자동완성 후보 드롭다운 -->
-          <div id="titleAutoCompleteBox" class="hidden border border-indigo-200 bg-white rounded-xl shadow-lg overflow-hidden divide-y divide-gray-100 z-20"></div>
-
-          <!-- 선택된 위치 상태 배지 표시줄 -->
-          <div id="selectedLocIndicator" class="hidden flex items-center justify-between bg-emerald-50 border border-emerald-200 text-emerald-800 px-2.5 py-1.5 rounded-xl text-[11px]">
-            <span id="selectedLocText" class="font-bold truncate">📍 위치 확정됨</span>
-            <button onclick="clearPendingLocation()" class="text-emerald-600 hover:text-red-500 font-bold ml-2 shrink-0">해제 ✕</button>
-          </div>
-
-          <div class="flex gap-1.5">
-            <input type="text" id="itemMemo" placeholder="메모 (예: 사슴 센베이, 고베규, 청수사 등)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs" />
-            <button onclick="addBasketItem()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-1.5 rounded-xl text-xs shrink-0">담기</button>
-          </div>
-        </div>
-
+      <!-- 개인 바구니 뷰 -->
+      <div id="viewPersonalBasket" class="space-y-2.5">
+        <div id="memberBasketTabs" class="flex gap-1.5 overflow-x-auto no-scrollbar"></div>
         <div id="personalList" class="space-y-2.5"></div>
       </div>
 
-      <div id="viewFamilyBasket" class="hidden space-y-3">
-        <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl text-xs text-indigo-800 flex justify-between items-center">
-          <span>🌟 가족 합의로 최종 선정된 <b>통합 바구니</b>입니다.</span>
-          <button onclick="switchTab('route')" class="bg-indigo-600 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0">자동 루트짜기 →</button>
+      <!-- 통합 가족 바구니 뷰 -->
+      <div id="viewFamilyBasket" class="hidden space-y-2.5">
+        <div id="familyDayFilter" class="flex gap-1.5 overflow-x-auto no-scrollbar"></div>
+        <div class="flex gap-1.5">
+          <button onclick="setFamilyType('all')" data-ftype="all" class="ftype-btn px-2.5 py-1 rounded-lg bg-gray-800 text-white text-xs font-bold">전체</button>
+          <button onclick="setFamilyType('place')" data-ftype="place" class="ftype-btn px-2.5 py-1 rounded-lg bg-white text-gray-600 border text-xs font-bold">📍 장소</button>
+          <button onclick="setFamilyType('food')" data-ftype="food" class="ftype-btn px-2.5 py-1 rounded-lg bg-white text-gray-600 border text-xs font-bold">🍜 먹거리</button>
+          <button onclick="setFamilyType('shop')" data-ftype="shop" class="ftype-btn px-2.5 py-1 rounded-lg bg-white text-gray-600 border text-xs font-bold">🛍️ 살것</button>
         </div>
-
-        <div class="space-y-1.5">
-          <div class="flex gap-1 overflow-x-auto no-scrollbar" id="familyDayFilter"></div>
-          <div class="flex gap-1.5 text-[11px] font-bold" id="familyTypeFilter">
-            <button onclick="setFamilyType('all')" data-ftype="all" class="ftype-btn px-2.5 py-1 rounded-lg bg-gray-800 text-white">전체</button>
-            <button onclick="setFamilyType('place')" data-ftype="place" class="ftype-btn px-2.5 py-1 rounded-lg bg-white text-gray-600 border">📍 장소</button>
-            <button onclick="setFamilyType('food')" data-ftype="food" class="ftype-btn px-2.5 py-1 rounded-lg bg-white text-gray-600 border">🍜 먹거리</button>
-            <button onclick="setFamilyType('shop')" data-ftype="shop" class="ftype-btn px-2.5 py-1 rounded-lg bg-white text-gray-600 border">🛍️ 살것</button>
-          </div>
-        </div>
-
         <div id="familyList" class="space-y-2.5"></div>
       </div>
     </section>
 
-    <!-- ================================================================= -->
-    <!-- 탭 3: 스마트 자동 루트 & 중간/최종 타임라인 (초기화 버튼 포함) -->
-    <!-- ================================================================= -->
+    <!-- [TAB 3] 자동루트 · 일정 -->
     <section id="tab-route" class="hidden space-y-3">
-      <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-1.5">
-        <button onclick="scrollHorizontalBar('routeDayTabs', -180)" aria-label="이전 일차" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-extrabold text-xs flex items-center justify-center shrink-0 border border-gray-200">
-          ◀
-        </button>
-        <div class="flex gap-1.5 overflow-x-auto no-scrollbar flex-1 py-0.5 scroll-smooth" id="routeDayTabs"></div>
-        <button onclick="scrollHorizontalBar('routeDayTabs', 180)" aria-label="다음 일차" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-extrabold text-xs flex items-center justify-center shrink-0 border border-gray-200">
-          ▶
-        </button>
-      </div>
+      <div id="routeDayTabs" class="flex gap-1.5 overflow-x-auto no-scrollbar"></div>
 
-      <div id="autoRouteGeneratorBox" class="hidden bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-2xl shadow-md space-y-2.5">
+      <!-- 영수 전용 루트 생성 컨트롤 -->
+      <div id="autoRouteGeneratorBox" class="hidden bg-indigo-50 border border-indigo-200 p-3 rounded-2xl space-y-2">
         <div class="flex justify-between items-center">
-          <h2 class="font-bold text-sm">🪄 원클릭 자동 루트 생성 (영수 전용)</h2>
-          <span class="text-[11px] bg-white/20 px-2 py-0.5 rounded-full" id="routeDayGoalBadge">1일차</span>
+          <span class="text-xs font-extrabold text-indigo-950">🧭 스마트 동선 최적화</span>
+          <span id="routeDayGoalBadge" class="text-[11px] font-bold text-indigo-700"></span>
         </div>
-        <p class="text-[11px] text-indigo-100">통합 바구니의 <b>해당 일자 장소·먹거리</b>와 가족 투표를 반영해 숙소 출발~복귀 최적 동선과 시간을 자동 계산합니다.</p>
-        <div class="grid grid-cols-2 gap-2 text-gray-800">
-          <div class="bg-white/95 rounded-xl p-2">
-            <label class="block text-[10px] font-bold text-gray-500">🏨 숙소 출발 시간</label>
-            <input type="time" id="routeStartTime" value="09:30" class="w-full font-bold text-sm bg-transparent focus:outline-none" />
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-white p-2 rounded-xl border border-indigo-100 flex items-center justify-between">
+            <span class="text-gray-500 font-bold">숙소 출발</span>
+            <input type="time" id="routeStartTime" value="09:30" class="font-bold text-indigo-700" />
           </div>
-          <div class="bg-white/95 rounded-xl p-2">
-            <label class="block text-[10px] font-bold text-gray-500">🏨 숙소 복귀 목표</label>
-            <input type="time" id="routeEndTime" value="21:00" class="w-full font-bold text-sm bg-transparent focus:outline-none" />
+          <div class="bg-white p-2 rounded-xl border border-indigo-100 flex items-center justify-between">
+            <span class="text-gray-500 font-bold">숙소 복귀</span>
+            <input type="time" id="routeEndTime" value="21:00" class="font-bold text-indigo-700" />
           </div>
         </div>
-        <button id="generateRouteBtn" onclick="generateAutoRoute()" class="w-full bg-amber-400 hover:bg-amber-300 text-indigo-950 font-extrabold py-2.5 rounded-xl text-xs shadow transition">
-          ✨ 통합 바구니 기반 최적 루트 자동 그리기 (중간버전 생성)
+        <button id="generateRouteBtn" onclick="generateAutoRoute()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">
+          ✨ 통합 바구니 기반 최적 루트 자동 그리기
         </button>
       </div>
 
+      <!-- 루트 상태 및 액션 바 -->
       <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap justify-between items-center gap-2">
         <div class="flex items-center gap-2">
-          <span id="routeStatusBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800">📝 중간 버전 (초안)</span>
-          <span class="text-xs text-gray-500" id="routeTotalSummary">총 0곳</span>
+          <span id="routeStatusBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600">미생성</span>
+          <span id="routeTotalSummary" class="text-xs font-bold text-gray-700"></span>
         </div>
         <div id="routeMasterActions" class="hidden flex items-center gap-1.5">
-          <button id="resetRouteBtn" onclick="resetCurrentDayRoute()" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition">
-            🗑️ 초기화
-          </button>
-          <button id="confirmFinalBtn" onclick="toggleFinalRoute()" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition">
-            🌟 최종 루트 확정
-          </button>
+          <button id="resetRouteBtn" onclick="resetCurrentDayRoute()" class="hidden text-[11px] bg-red-50 text-red-600 font-bold px-2.5 py-1 rounded-lg">초기화</button>
+          <button id="confirmFinalBtn" onclick="toggleFinalRoute()" class="hidden text-[11px] bg-emerald-600 text-white font-bold px-2.5 py-1 rounded-lg">🌟 최종 루트 확정</button>
         </div>
       </div>
 
-      <div class="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-100">
-        <div id="routeMap"></div>
+      <div class="rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+        <div id="routeMap" class="h-52 w-full z-10"></div>
       </div>
 
       <div id="routeTimeline" class="space-y-2"></div>
     </section>
 
-    <!-- ================================================================= -->
-    <!-- 탭 4: 날짜·계절 맞춤 추천 준비물 & 통합 쇼핑 체크리스트 -->
-    <!-- ================================================================= -->
+    <!-- [TAB 4] 준비물 · 쇼핑 · 환율 -->
     <section id="tab-pack" class="hidden space-y-3">
-      <!-- 계절·기후 환경 맞춤 스마트 준비물 추천 카드 -->
-      <div class="bg-gradient-to-br from-sky-50 via-indigo-50 to-amber-50 p-3.5 rounded-2xl shadow-sm border border-indigo-100 space-y-2.5">
+      <!-- 실시간 엔화 환율 계산기 -->
+      <div class="bg-gradient-to-r from-indigo-900 to-slate-800 text-white p-3.5 rounded-2xl shadow-sm space-y-2">
+        <div class="flex justify-between items-center">
+          <span id="fxRateLabel" class="text-xs font-extrabold text-amber-300">💴 100¥=905원</span>
+          <button id="fxRefreshBtn" onclick="fetchLiveFxRate(true)" class="text-[10px] bg-white/15 px-2 py-1 rounded-lg font-bold">🔄 실시간</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="number" id="jpyInput" oninput="calcKrw()" placeholder="엔화(¥) 입력" class="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm font-bold text-white placeholder-indigo-200" />
+          <span class="text-sm font-bold">➔</span>
+          <div id="krwOutput" class="bg-white text-indigo-950 font-extrabold px-3.5 py-2 rounded-xl text-sm min-w-[110px] text-right">0 원</div>
+        </div>
+      </div>
+
+      <!-- 계절·날씨 맞춤 준비물 추천 카드 -->
+      <div class="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-3.5 space-y-2.5">
         <div class="flex justify-between items-start gap-2">
           <div>
             <div class="flex items-center gap-1.5">
-              <span class="text-base" id="seasonIcon">🍂</span>
-              <h2 class="font-extrabold text-sm text-indigo-950" id="seasonTitle">여행 날짜 기준 계절·환경 맞춤 준비물</h2>
+              <span id="seasonIcon" class="text-base">🍂</span>
+              <h3 id="seasonTitle" class="font-extrabold text-xs text-indigo-950">시즌 맞춤 준비물 추천</h3>
             </div>
-            <p class="text-[11px] text-indigo-800/80 mt-0.5 leading-relaxed" id="seasonWeatherDesc">일정을 불러오는 중...</p>
+            <p id="seasonWeatherDesc" class="text-[11px] text-indigo-800 mt-1"></p>
           </div>
-          <button onclick="addAllRecommendedPacks()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-extrabold px-2.5 py-1.5 rounded-xl shrink-0 shadow-sm">
-            ✨ 미등록 일괄담기
-          </button>
+          <button id="seasonRecToggleBtn" onclick="toggleSeasonRecList()" class="text-[11px] font-bold text-indigo-600 shrink-0">접기 ▲</button>
         </div>
-
-        <!-- 추천 준비물 상태 요약 배지 -->
-        <div class="flex items-center justify-between bg-white/80 px-3 py-1.5 rounded-xl text-[11px] border border-indigo-100/70">
-          <span class="font-bold text-gray-700" id="seasonPackProgressText">추천 항목 준비 현황: 0 / 0개 등록됨</span>
-          <button onclick="toggleSeasonRecList()" id="seasonRecToggleBtn" class="text-indigo-600 font-extrabold">접기 ▲</button>
+        <div class="flex justify-between items-center text-[11px]">
+          <span id="seasonPackProgressText" class="font-bold text-indigo-700"></span>
+          <button onclick="addAllRecommendedPacks()" class="bg-indigo-600 text-white font-bold px-2.5 py-1 rounded-lg text-[11px]">+ 미등록 일괄담기</button>
         </div>
-
-        <!-- 계절별 추천 준비물 리스트 -->
-        <div id="seasonRecListBox" class="space-y-2"></div>
+        <div id="seasonRecListBox" class="space-y-1.5 max-h-64 overflow-y-auto pr-0.5"></div>
       </div>
 
-      <!-- 직접 준비물/쇼핑 아이템 추가 -->
-      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
-        <h2 class="font-bold text-sm">🧳 준비물 & 🛍️ 쇼핑 아이템 직접 추가</h2>
+      <!-- 준비물/쇼핑 직접 추가 -->
+      <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 space-y-2">
         <div class="flex gap-1.5">
-          <select id="packType" class="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs font-bold">
+          <select id="packType" class="bg-gray-100 rounded-xl px-2 py-2 text-xs font-bold">
             <option value="pack">🧳 준비물</option>
-            <option value="shop">🛍️ 쇼핑</option>
+            <option value="shop">🛍️ 살것</option>
           </select>
-          <select id="packOwner" class="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs font-medium">
-            <option value="공통">👨‍👩‍👧‍👦 공통</option>
-            <option value="영수">👨 영수</option>
-            <option value="예진">👩 예진</option>
-            <option value="연우">🧑 연우</option>
-            <option value="정우">🧒 정우</option>
+          <select id="packOwner" class="bg-gray-100 rounded-xl px-2 py-2 text-xs font-bold">
+            <option value="공통">공통</option>
+            <option value="영수">영수</option>
+            <option value="예진">예진</option>
+            <option value="연우">연우</option>
+            <option value="정우">정우</option>
           </select>
-          <input type="text" id="packInput" placeholder="예: 보조배터리, 동전지갑, 샤프" class="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs" onkeypress="if(event.key==='Enter') addManualPack()" />
+          <input type="text" id="packInput" placeholder="항목 입력..." class="flex-1 bg-gray-50 border rounded-xl px-2.5 py-2 text-xs" onkeypress="if(event.key==='Enter') addManualPack()" />
           <button onclick="addManualPack()" class="bg-indigo-600 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0">추가</button>
         </div>
       </div>
@@ -476,6 +411,14 @@
       spot:  { emoji: "🎢", bg: "#2563eb", label: "명소·맛집" }
     };
 
+    const SITUATION_LABELS = {
+      all: "전체 상황",
+      indoor: "☔ 비/실내쾌적",
+      kids: "👦 아이들(중3·초6)",
+      food: "🍽️ 식사·간식",
+      night: "🌃 야경·저녁"
+    };
+
     const HOTEL_AREAS = {
       namba: { name: "오사카 · 난바/도톤보리 숙소", lat: 34.6665, lng: 135.5015 },
       umeda: { name: "오사카 · 우메다/오사카역 숙소", lat: 34.7019, lng: 135.4950 },
@@ -486,295 +429,482 @@
       kobe: { name: "고베 · 산노미야/하버랜드 숙소", lat: 34.6937, lng: 135.1955 }
     };
 
-    // 한국인 블로그 인기순(rank) 반영 간사이 4대 도시(오사카·교토·고베·나라) 카탈로그
-    const KANSAI_CATALOG = [
-      // ================= [오사카] =================
+    // =========================================================================
+    // [대용량 확장 DB] 간사이 4대 권역(오사카 40 · 교토 24 · 고베 16 · 나라 12 = 총 92곳)
+    // tags: indoor(실내쾌적), kids(중3·초6 추천), food(식사·간식), night(야경·저녁)
+    // =========================================================================
+    const DEFAULT_KANSAI_DB = [
+      // ================= [오사카 40곳] =================
       {
-        city: "오사카", rank: 1, name: "도톤보리 글리코상 & 리버크루즈", theme: "spot", itemType: "place", area: "오사카 · 난바", lat: 34.6687, lng: 135.5013, stayMin: 50,
+        id: "osaka_01", city: "오사카", rank: 1, name: "도톤보리 글리코상 & 리버크루즈", theme: "spot", tags: ["night", "food", "kids"], area: "오사카 · 난바", lat: 34.6687, lng: 135.5013, stayMin: 50,
         storeFeature: "한국인 방문 1위 야경 명소! 주유패스 이용 시 리버크루즈 무료 탑승",
-        mustItems: [
-          { name: "글리코상 인증샷 & 타코야키 먹방", type: "food" },
-          { name: "도톤보리 10원빵", type: "food" }
-        ]
+        mustItems: [{ name: "글리코상 인증샷 & 타코야키 먹방", type: "food" }, { name: "도톤보리 10원빵 & 앗치치혼포 타코야키", type: "food" }]
       },
       {
-        city: "오사카", rank: 2, name: "유니버설 스튜디오 재팬 (USJ)", theme: "spot", itemType: "place", area: "오사카 · USJ", lat: 34.6654, lng: 135.4323, stayMin: 360,
+        id: "osaka_02", city: "오사카", rank: 2, name: "유니버설 스튜디오 재팬 (USJ)", theme: "spot", tags: ["kids", "night"], area: "오사카 · USJ", lat: 34.6654, lng: 135.4323, stayMin: 360,
         storeFeature: "슈퍼 닌텐도 월드 & 해리포터! 아침 오픈런 및 공식 앱 에어리어 정리권 필수",
-        mustItems: [
-          { name: "마리오 파워업 밴드 & 팝콘통", type: "shop" },
-          { name: "해리포터 버터맥주", type: "food" }
-        ]
+        mustItems: [{ name: "마리오 파워업 밴드 & 슈퍼스타 팝콘통", type: "shop" }, { name: "해리포터 버터맥주 & 지팡이", type: "food" }]
       },
       {
-        city: "오사카", rank: 3, name: "신사이바시 파르코 (6층 캐릭터 스트리트)", theme: "goods", itemType: "place", area: "오사카 · 신사이바시", lat: 34.6745, lng: 135.5005, stayMin: 90,
-        storeFeature: "지브리·짱구·치이카와·고질라·리락쿠마 공식샵 총집합 (면세 가능)",
-        mustItems: [
-          { name: "치이카와(먼작귀) 한정 인형·키링", type: "shop" },
-          { name: "지브리 토토로 문구·손수건", type: "shop" },
-          { name: "짱구 액션가면 굿즈", type: "shop" }
-        ]
+        id: "osaka_03", city: "오사카", rank: 3, name: "신사이바시 파르코 (6층 캐릭터 스트리트)", theme: "goods", tags: ["indoor", "kids"], area: "오사카 · 신사이바시", lat: 34.6745, lng: 135.5005, stayMin: 90,
+        storeFeature: "지브리·짱구·치이카와·고질라·리락쿠마 공식샵 총집합 (비 오는 날 실내 최고)",
+        mustItems: [{ name: "치이카와(먼작귀) 한정 인형·키링", type: "shop" }, { name: "지브리 토토로 문구·손수건", type: "shop" }, { name: "짱구 액션가면·초코비 굿즈", type: "shop" }]
       },
       {
-        city: "오사카", rank: 4, name: "오사카성 천수각 & 로드트레인", theme: "spot", itemType: "place", area: "오사카 · 오사카성", lat: 34.6873, lng: 135.5262, stayMin: 90,
+        id: "osaka_04", city: "오사카", rank: 4, name: "오사카성 천수각 & 로드트레인", theme: "spot", tags: ["kids"], area: "오사카 · 오사카성", lat: 34.6873, lng: 135.5262, stayMin: 90,
         storeFeature: "역에서 천수각까지 걷기 머니 유료 로드트레인(꼬마열차) 탑승 추천",
-        mustItems: [
-          { name: "오사카성 말차 아이스크림", type: "food" }
-        ]
+        mustItems: [{ name: "오사카성 말차 아이스크림", type: "food" }]
       },
       {
-        city: "오사카", rank: 5, name: "다이마루 우메다 13층 (닌텐도 & 포켓몬센터)", theme: "goods", itemType: "place", area: "오사카 · 우메다", lat: 34.7018, lng: 135.4955, stayMin: 90,
+        id: "osaka_05", city: "오사카", rank: 5, name: "다이마루 우메다 13층 (닌텐도 & 포켓몬센터)", theme: "goods", tags: ["indoor", "kids"], area: "오사카 · 우메다", lat: 34.7018, lng: 135.4955, stayMin: 90,
         storeFeature: "닌텐도 오사카·포켓몬센터·원피스·캡콤 스토어 한 층에 밀집",
-        mustItems: [
-          { name: "마리오·피크민 오사카 한정 굿즈", type: "shop" },
-          { name: "포켓몬센터 오사카 한정 인형", type: "shop" }
-        ]
+        mustItems: [{ name: "마리오·피크민 오사카 한정 굿즈", type: "shop" }, { name: "포켓몬센터 오사카 한정 인형·카드", type: "shop" }]
       },
       {
-        city: "오사카", rank: 6, name: "우메다 로프트 (LOFT) & 한큐 문구코너", theme: "goods", itemType: "place", area: "오사카 · 우메다", lat: 34.7062, lng: 135.4980, stayMin: 80,
-        storeFeature: "일본 최대 문구·잡화 플래그십! 한정판 샤프와 스티커 천국",
-        mustItems: [
-          { name: "쿠루토가 다이브/메탈 샤프", type: "shop" },
-          { name: "제트스트림 4&1 한정판 볼펜", type: "shop" },
-          { name: "일본 다꾸 마스킹테이프·스티커", type: "shop" }
-        ]
+        id: "osaka_06", city: "오사카", rank: 6, name: "우메다 로프트 (LOFT) & 한큐 문구코너", theme: "goods", tags: ["indoor", "kids"], area: "오사카 · 우메다", lat: 34.7062, lng: 135.4980, stayMin: 80,
+        storeFeature: "일본 최대 문구·잡화 플래그십! 중3·초6 아이들이 열광하는 한정판 샤프 천국",
+        mustItems: [{ name: "쿠루토가 다이브/메탈 샤프", type: "shop" }, { name: "제트스트림 4&1 한정판 볼펜", type: "shop" }, { name: "일본 다꾸 마스킹테이프·스티커", type: "shop" }]
       },
       {
-        city: "오사카", rank: 7, name: "메가 돈키호테 신세카이점", theme: "value", itemType: "place", area: "오사카 · 덴노지", lat: 34.6495, lng: 135.5045, stayMin: 90,
+        id: "osaka_07", city: "오사카", rank: 7, name: "메가 돈키호테 신세카이점", theme: "value", tags: ["indoor", "night"], area: "오사카 · 덴노지", lat: 34.6495, lng: 135.5045, stayMin: 90,
         storeFeature: "도톤보리점보다 통로가 넓고 웨이팅이 적어 가족 쇼핑에 훨씬 쾌적한 초대형점",
-        mustItems: [
-          { name: "동전파스 & 샤론파스 대용량", type: "shop" },
-          { name: "휴족시간 쿨링시트", type: "shop" },
-          { name: "이치란 봉지라면 5입 세트", type: "shop" }
-        ]
+        mustItems: [{ name: "동전파스 & 샤론파스 대용량", type: "shop" }, { name: "휴족시간 쿨링시트 & 수면안대", type: "shop" }, { name: "이치란 봉지라면 5입 세트", type: "shop" }]
       },
       {
-        city: "오사카", rank: 8, name: "스기약국 신사이바시스지점 (드럭스토어)", theme: "value", itemType: "place", area: "오사카 · 신사이바시", lat: 34.6725, lng: 135.5012, stayMin: 50,
-        storeFeature: "의약품·화장품 가성비 우수 & 관광객 쿠폰 중복 할인 가능",
-        mustItems: [
-          { name: "카베진 알파 300정 (위장약)", type: "shop" },
-          { name: "오타이산 소화제 (캔/포)", type: "shop" },
-          { name: "비오레 UV 아쿠아리치 선크림", type: "shop" }
-        ]
+        id: "osaka_08", city: "오사카", rank: 8, name: "스기약국 신사이바시스지점 (드럭스토어)", theme: "value", tags: ["indoor"], area: "오사카 · 신사이바시", lat: 34.6725, lng: 135.5012, stayMin: 50,
+        storeFeature: "아케이드 지붕이 있어 비 안 맞고 쇼핑 가능! 관광객 쿠폰 중복 할인",
+        mustItems: [{ name: "카베진 알파 300정 (위장약)", type: "shop" }, { name: "오타이산 소화제 (캔/포)", type: "shop" }, { name: "비오레 UV 아쿠아리치 선크림", type: "shop" }]
       },
       {
-        city: "오사카", rank: 9, name: "우메다 공중정원 전망대 (스카이빌딩)", theme: "spot", itemType: "place", area: "오사카 · 우메다", lat: 34.7052, lng: 135.4897, stayMin: 70,
-        storeFeature: "해질녘 노을~야경 시간대 최고 뷰! 주유패스 무료/할인 시간 확인 필수",
-        mustItems: [
-          { name: "공중정원 야경 인증샷", type: "place" }
-        ]
+        id: "osaka_09", city: "오사카", rank: 9, name: "우메다 공중정원 전망대 (스카이빌딩)", theme: "spot", tags: ["night"], area: "오사카 · 우메다", lat: 34.7052, lng: 135.4897, stayMin: 70,
+        storeFeature: "해질녘 노을~야경 시간대 최고 뷰! 지하 타키미코지 레트로 식당가도 인기",
+        mustItems: [{ name: "공중정원 야경 인증샷", type: "place" }]
       },
       {
-        city: "오사카", rank: 10, name: "덴덴타운 & 애니메이트 닛폰바시", theme: "goods", itemType: "place", area: "오사카 · 난바", lat: 34.6615, lng: 135.5056, stayMin: 90,
+        id: "osaka_10", city: "오사카", rank: 10, name: "덴덴타운 & 애니메이트 닛폰바시", theme: "goods", tags: ["indoor", "kids"], area: "오사카 · 난바", lat: 34.6615, lng: 135.5056, stayMin: 90,
         storeFeature: "오사카의 아키하바라! 만화·애니 굿즈, 피규어, 대형 가챠샵 밀집",
-        mustItems: [
-          { name: "하이큐/주술회전/귀멸 아크릴 굿즈", type: "shop" },
-          { name: "가챠(캡슐토이) 피규어 뽑기", type: "shop" }
-        ]
+        mustItems: [{ name: "하이큐/주술회전/귀멸 아크릴 굿즈", type: "shop" }, { name: "가챠(캡슐토이) 피규어 뽑기", type: "shop" }]
       },
       {
-        city: "오사카", rank: 11, name: "모토무라 규카츠 난바점", theme: "spot", itemType: "place", area: "오사카 · 난바", lat: 34.6668, lng: 135.5022, stayMin: 70,
-        storeFeature: "개인 화로에 직접 구워 먹는 소고기 규카츠! 오픈 30분 전 대기 추천",
-        mustItems: [
-          { name: "규카츠 정식 (돌판 구이)", type: "food" }
-        ]
+        id: "osaka_11", city: "오사카", rank: 11, name: "모토무라 규카츠 난바점", theme: "spot", tags: ["food", "indoor"], area: "오사카 · 난바", lat: 34.6668, lng: 135.5022, stayMin: 70,
+        storeFeature: "개인 화로에 직접 구워 먹는 소고기 규카츠! 아이들도 정말 잘 먹는 메뉴",
+        mustItems: [{ name: "규카츠 정식 (돌판 구이)", type: "food" }]
       },
       {
-        city: "오사카", rank: 12, name: "무인양품(MUJI) & 3COINS 난바", theme: "value", itemType: "place", area: "오사카 · 난바", lat: 34.6645, lng: 135.5020, stayMin: 60,
+        id: "osaka_12", city: "오사카", rank: 12, name: "무인양품(MUJI) & 3COINS 난바", theme: "value", tags: ["indoor"], area: "오사카 · 난바", lat: 34.6645, lng: 135.5020, stayMin: 60,
         storeFeature: "한국보다 30~40% 저렴한 무인양품 + 300엔 감성 생활꿀템 3COINS",
-        mustItems: [
-          { name: "무인양품 기능성 펜 & 파우치", type: "shop" },
-          { name: "3COINS 주방 실리콘·여행 정리백", type: "shop" }
-        ]
+        mustItems: [{ name: "무인양품 기능성 펜 & 파우치", type: "shop" }, { name: "3COINS 주방 실리콘·여행 정리백", type: "shop" }]
       },
       {
-        city: "오사카", rank: 13, name: "로손(LAWSON) 도톤보리점", theme: "cvs", itemType: "place", area: "오사카 · 난바", lat: 34.6682, lng: 135.5025, stayMin: 20,
+        id: "osaka_13", city: "오사카", rank: 13, name: "해유관 (가이유칸 수족관) & 텐포잔 관람차", theme: "spot", tags: ["indoor", "kids"], area: "오사카 · 오사카항", lat: 34.6545, lng: 135.4290, stayMin: 150,
+        storeFeature: "세계 최대급 수족관의 거대 고래상어 관람! 비 오거나 추운 날 실내 코스로 최고",
+        mustItems: [{ name: "고래상어 소프트 아이스크림 & 인형", type: "shop" }]
+      },
+      {
+        id: "osaka_14", city: "오사카", rank: 14, name: "구로몬 시장 (먹거리 시장)", theme: "spot", tags: ["food", "indoor"], area: "오사카 · 난바", lat: 34.6655, lng: 135.5065, stayMin: 60,
+        storeFeature: "지붕 있는 아케이드 시장! 가리비 버터구이, 와규 꼬치, 생딸기 모찌 먹방",
+        mustItems: [{ name: "가리비 버터구이 & 와규 꼬치", type: "food" }, { name: "생딸기 다이후쿠(모찌)", type: "food" }]
+      },
+      {
+        id: "osaka_15", city: "오사카", rank: 15, name: "아베노 하루카스 300 전망대 & 킨테쓰 백화점", theme: "spot", tags: ["indoor", "night"], area: "오사카 · 덴노지", lat: 34.6458, lng: 135.5133, stayMin: 80,
+        storeFeature: "지상 300m 초고층 실내 파노라마 전망대 & 백화점 지하 식품관 디저트 쇼핑",
+        mustItems: [{ name: "하루카스 300 야경 관람", type: "place" }]
+      },
+      {
+        id: "osaka_16", city: "오사카", rank: 16, name: "츠텐카쿠 & 신세카이 꼬치카츠 거리", theme: "spot", tags: ["food", "night", "kids"], area: "오사카 · 덴노지", lat: 34.6525, lng: 135.5063, stayMin: 70,
+        storeFeature: "화려한 레트로 네온 간판 거리와 바삭한 꼬치튀김(쿠시카츠 다루마), 타워 슬라이더 체험",
+        mustItems: [{ name: "쿠시카츠 다루마 모둠 꼬치튀김", type: "food" }]
+      },
+      {
+        id: "osaka_17", city: "오사카", rank: 17, name: "이치란 라멘 도톤보리 본관", theme: "spot", tags: ["food", "night"], area: "오사카 · 난바", lat: 34.6691, lng: 135.5030, stayMin: 60,
+        storeFeature: "한국인 입맛에 딱 맞는 진한 돈코츠 라멘! 비밀 소스 3~4배 + 반숙계란 필수",
+        mustItems: [{ name: "이치란 돈코츠 라멘 + 반숙계란", type: "food" }]
+      },
+      {
+        id: "osaka_18", city: "오사카", rank: 18, name: "헵파이브(HEP FIVE) 관람차 & 산리오/디즈니", theme: "goods", tags: ["indoor", "night", "kids"], area: "오사카 · 우메다", lat: 34.7040, lng: 135.5003, stayMin: 70,
+        storeFeature: "붉은 관람차 야경 탑승(주유패스 무료) + 건물 내 디즈니스토어·산리오 입점",
+        mustItems: [{ name: "헵파이브 대관람차 야경 탑승", type: "place" }, { name: "산리오·디즈니 우메다 한정 굿즈", type: "shop" }]
+      },
+      {
+        id: "osaka_19", city: "오사카", rank: 19, name: "다이소(DAISO) 신사이바시점 (대형매장)", theme: "value", tags: ["indoor", "kids"], area: "오사카 · 신사이바시", lat: 34.6738, lng: 135.5015, stayMin: 50,
+        storeFeature: "100엔샵의 성지! 일본 문구류, 캐릭터 지퍼백, 주방 아이디어 아이템 가성비 끝판왕",
+        mustItems: [{ name: "일본 100엔 캐릭터 지퍼백·도시락 소품", type: "shop" }, { name: "일본 문구 컬러펜·메모지 세트", type: "shop" }]
+      },
+      {
+        id: "osaka_20", city: "오사카", rank: 20, name: "오렌지 스트리트 (호리에 편집샵 거리)", theme: "value", tags: ["kids"], area: "오사카 · 난바", lat: 34.6713, lng: 135.4945, stayMin: 70,
+        storeFeature: "스트릿 패션·스니커즈·감성 잡화 편집샵과 예쁜 카페가 모인 세련된 거리",
+        mustItems: [{ name: "일본 한정 스니커즈·스트릿 의류 구경", type: "shop" }]
+      },
+      {
+        id: "osaka_21", city: "오사카", rank: 21, name: "엑스포시티(EXPOCITY) & 니후레루 수족관", theme: "spot", tags: ["indoor", "kids"], area: "오사카 · 북부(스이타)", lat: 34.8055, lng: 135.5335, stayMin: 180,
+        storeFeature: "만박기념공원 앞 초대형 복합몰! 만져보는 동물원형 수족관 '니후레루'와 라라포트 쇼핑",
+        mustItems: [{ name: "니후레루 화이트타이거·카피바라 관람", type: "place" }, { name: "라라포트 대형 쇼핑몰 가족 쇼핑", type: "shop" }]
+      },
+      {
+        id: "osaka_22", city: "오사카", rank: 22, name: "나카자키초 카페거리 (빈티지 골목)", theme: "spot", tags: ["food"], area: "오사카 · 우메다", lat: 34.7068, lng: 135.5055, stayMin: 70,
+        storeFeature: "우메다 도보 10분! 고즈넉한 일본 주택을 개조한 디저트 카페와 소품샵 골목",
+        mustItems: [{ name: "수제 푸딩 & 말차 라떼 휴식", type: "food" }]
+      },
+      {
+        id: "osaka_23", city: "오사카", rank: 23, name: "신사이바시 키디랜드 (KIDDY LAND)", theme: "goods", tags: ["indoor", "kids"], area: "오사카 · 신사이바시", lat: 34.6730, lng: 135.5010, stayMin: 60,
+        storeFeature: "파르코 바로 인근! 치이카와 랜드, 스누피 타운, 미피 스타일이 모여있는 캐릭터 성지",
+        mustItems: [{ name: "치이카와·스누피 한정 키링 & 파우치", type: "shop" }]
+      },
+      {
+        id: "osaka_24", city: "오사카", rank: 24, name: "난바 파크스 (Namba Parks) & 츠타야 문구", theme: "value", tags: ["indoor", "night"], area: "오사카 · 난바", lat: 34.6612, lng: 135.5018, stayMin: 80,
+        storeFeature: "도심 속 계단식 옥상 정원이 아름다운 복합몰! 의류·잡화·식당가 가족 외식 최적",
+        mustItems: [{ name: "난바 파크스 야간 일루미네이션 산책", type: "place" }]
+      },
+      {
+        id: "osaka_25", city: "오사카", rank: 25, name: "우메다 한큐 백화점 지하 식품관 (데파치카)", theme: "value", tags: ["indoor", "food"], area: "오사카 · 우메다", lat: 34.7025, lng: 135.4988, stayMin: 60,
+        storeFeature: "일본 백화점 식품관의 끝판왕! 바통도르, 에쉬레 쿠키, 마감 세일 도시락 보물창고",
+        mustItems: [{ name: "바통도르(고급 빼빼로) & 슈가버터샌드트리", type: "shop" }]
+      },
+      {
+        id: "osaka_26", city: "오사카", rank: 26, name: "요도바시 카메라 멀티미디어 우메다", theme: "goods", tags: ["indoor", "kids"], area: "오사카 · 우메다", lat: 34.7042, lng: 135.4962, stayMin: 80,
+        storeFeature: "지하 2층~8층 초대형 매장! 프라모델·건담, 닌텐도 게임, 문구, 시계, 가전 원스톱 쇼핑",
+        mustItems: [{ name: "건담 프라모델 & 피규어 구경", type: "shop" }, { name: "일제 고급 샤프·전자문구", type: "shop" }]
+      },
+      {
+        id: "osaka_27", city: "오사카", rank: 27, name: "팀랩 보태니컬 가든 오사카 (나가이 식물원)", theme: "spot", tags: ["night", "kids"], area: "오사카 · 남부", lat: 34.6115, lng: 135.5215, stayMin: 90,
+        storeFeature: "밤에만 열리는 환상적인 야외 디지털 미디어 아트 정원! 가족 야간 코스로 강력 추천",
+        mustItems: [{ name: "빛나는 달걀 숲 포토존 인증샷", type: "place" }]
+      },
+      {
+        id: "osaka_28", city: "오사카", rank: 28, name: "치보(Chibo) 오코노미야키 도톤보리점", theme: "spot", tags: ["food", "indoor"], area: "오사카 · 난바", lat: 34.6685, lng: 135.5020, stayMin: 70,
+        storeFeature: "오사카 명물 오코노미야키와 야키소바 전문점! 철판에서 직접 구워주어 가족 식사로 굿",
+        mustItems: [{ name: "도톤보리 야키(특선 오코노미야키) & 야키소바", type: "food" }]
+      },
+      {
+        id: "osaka_29", city: "오사카", rank: 29, name: "우메다 키지(Kiji) 오코노미야키 (스카이빌딩 지하)", theme: "spot", tags: ["food", "indoor"], area: "오사카 · 우메다", lat: 34.7050, lng: 135.4900, stayMin: 60,
+        storeFeature: "공중정원 지하 레트로 거리의 전설적인 맛집! 바삭하고 고소한 모단야키가 일품",
+        mustItems: [{ name: "모단야키(면 들어간 오코노미야키)", type: "food" }]
+      },
+      {
+        id: "osaka_30", city: "오사카", rank: 30, name: "지유켄(Jiyuken) 난바 본점 (명물 카레)", theme: "spot", tags: ["food", "indoor"], area: "오사카 · 난바", lat: 34.6662, lng: 135.5032, stayMin: 50,
+        storeFeature: "100년 전통의 오사카 명물 비빔 카레! 날계란을 톡 터뜨려 간장 소스와 비벼 먹는 맛",
+        mustItems: [{ name: "메이부츠 카레 (계란 비빔 카레)", type: "food" }]
+      },
+      {
+        id: "osaka_31", city: "오사카", rank: 31, name: "킨류 라멘 & 카무쿠라 라멘 도톤보리", theme: "spot", tags: ["food", "night"], area: "오사카 · 난바", lat: 34.6688, lng: 135.5028, stayMin: 50,
+        storeFeature: "거대한 용 간판의 킨류 라멘 & 배추 듬뿍 시원한 국물의 카무쿠라 라멘(가족 호불호 제로)",
+        mustItems: [{ name: "카무쿠라 오이시이 라멘 + 교자", type: "food" }]
+      },
+      {
+        id: "osaka_32", city: "오사카", rank: 32, name: "리쿠로 오지상 치즈케이크 난바 본점", theme: "spot", tags: ["food"], area: "오사카 · 난바", lat: 34.6658, lng: 135.5015, stayMin: 30,
+        storeFeature: "딸랑딸랑 종소리와 함께 갓 구워 나오는 퐁신퐁신 수플레 치즈케이크!",
+        mustItems: [{ name: "갓 구운 수플레 치즈케이크", type: "food" }]
+      },
+      {
+        id: "osaka_33", city: "오사카", rank: 33, name: "551 호라이 만두 난바 본점", theme: "spot", tags: ["food"], area: "오사카 · 난바", lat: 34.6663, lng: 135.5016, stayMin: 30,
+        storeFeature: "오사카 사람들의 소울 간식! 육즙 가득한 왕만두(부타망)와 새우 슈마이",
+        mustItems: [{ name: "551 부타망(왕만두) & 교자", type: "food" }]
+      },
+      {
+        id: "osaka_34", city: "오사카", rank: 34, name: "오사카 시립 과학관 (나카노시마)", theme: "spot", tags: ["indoor", "kids"], area: "오사카 · 우메다", lat: 34.6912, lng: 135.4915, stayMin: 110,
+        storeFeature: "비 오는 날 초6·중3 아이들과 가기 좋은 체험형 과학관 & 세계 최대급 플라네타륨 천체투영관",
+        mustItems: [{ name: "플라네타륨 별자리 상영 & 체험 전시", type: "place" }]
+      },
+      {
+        id: "osaka_35", city: "오사카", rank: 35, name: "오사카 주택박물관 (텐진바시스지 6초메)", theme: "spot", tags: ["indoor", "kids"], area: "오사카 · 북부", lat: 34.7105, lng: 135.5115, stayMin: 80,
+        storeFeature: "에도시대 오사카 거리를 실내에 그대로 재현! 주유패스 무료 입장 & 기모노 체험 인기",
+        mustItems: [{ name: "에도시대 실내 마을 야경 체험", type: "place" }]
+      },
+      {
+        id: "osaka_36", city: "오사카", rank: 36, name: "링쿠 프리미엄 아울렛 (간사이공항 인근)", theme: "value", tags: ["indoor"], area: "오사카 · 남부(공항)", lat: 34.4075, lng: 135.2945, stayMin: 150,
+        storeFeature: "출국 전날이나 귀국일 공항 가기 전 들르기 좋은 바다 앞 대형 아울렛(나이키·폴로·프랑프랑)",
+        mustItems: [{ name: "나이키·아디다스·아식스 운동화 특가 쇼핑", type: "shop" }]
+      },
+      {
+        id: "osaka_37", city: "오사카", rank: 37, name: "로손(LAWSON) 도톤보리점", theme: "cvs", tags: ["food", "night", "indoor"], area: "오사카 · 난바", lat: 34.6682, lng: 135.5025, stayMin: 20,
         storeFeature: "디저트와 즉석 치킨류가 가장 강력한 로손! 야식 간식 털이 필수",
-        mustItems: [
-          { name: "로손 우치카페 프리미엄 모찌롤", type: "food" },
-          { name: "가라아게군 (레귤러/치즈 치킨)", type: "food" }
-        ]
+        mustItems: [{ name: "로손 우치카페 프리미엄 모찌롤", type: "food" }, { name: "가라아게군 (레귤러/치즈 치킨)", type: "food" }]
       },
       {
-        city: "오사카", rank: 14, name: "세븐일레븐 난바역 앞점", theme: "cvs", itemType: "place", area: "오사카 · 난바", lat: 34.6660, lng: 135.5008, stayMin: 20,
+        id: "osaka_38", city: "오사카", rank: 38, name: "세븐일레븐 난바역 앞점", theme: "cvs", tags: ["food", "night", "indoor"], area: "오사카 · 난바", lat: 34.6660, lng: 135.5008, stayMin: 20,
         storeFeature: "즉석 생과일 스무디 기계 보유 점포! 타마고산도 퀄리티 1위",
-        mustItems: [
-          { name: "세븐일레븐 타마고산도 (계란샌드위치)", type: "food" },
-          { name: "냉동컵 즉석 스무디 (망고/베리)", type: "food" }
-        ]
+        mustItems: [{ name: "세븐일레븐 타마고산도 (계란샌드위치)", type: "food" }, { name: "냉동컵 즉석 스무디 (망고/베리)", type: "food" }]
+      },
+      {
+        id: "osaka_39", city: "오사카", rank: 39, name: "패밀리마트 난바 센니치마에점", theme: "cvs", tags: ["food", "night", "indoor"], area: "오사카 · 난바", lat: 34.6652, lng: 135.5028, stayMin: 20,
+        storeFeature: "파미치키(뼈없는 순살치킨)와 수플레 푸딩, 양말이 유명한 편의점",
+        mustItems: [{ name: "패밀리마트 파미치키 & 수플레 푸딩", type: "food" }, { name: "패밀리마트 라인 삭스 (양말)", type: "shop" }]
+      },
+      {
+        id: "osaka_40", city: "오사카", rank: 40, name: "로손 우메다역 앞점", theme: "cvs", tags: ["food", "night", "indoor"], area: "오사카 · 우메다", lat: 34.7028, lng: 135.4970, stayMin: 20,
+        storeFeature: "우메다 쇼핑 후 야식 간식 및 고디바 콜라보 디저트 구매하기 좋은 편의점",
+        mustItems: [{ name: "로손 바스크 치즈케이크 & 모찌롤", type: "food" }]
       },
 
-      // ================= [교토] =================
+      // ================= [교토 24곳] =================
       {
-        city: "교토", rank: 1, name: "청수사(기요미즈데라) & 산넨자카·니넨자카", theme: "spot", itemType: "place", area: "교토 · 히가시야마", lat: 34.9949, lng: 135.7850, stayMin: 120,
+        id: "kyoto_01", city: "교토", rank: 1, name: "청수사(기요미즈데라) & 산넨자카·니넨자카", theme: "spot", tags: ["kids", "food"], area: "교토 · 히가시야마", lat: 34.9949, lng: 135.7850, stayMin: 120,
         storeFeature: "한국인 교토 만족도 1위! 언덕길 따라 지브리 동구리 공화국, 스누피 초콜릿, 다다미 스타벅스 위치",
-        mustItems: [
-          { name: "산넨자카 지브리(동구리 공화국) 굿즈", type: "shop" },
-          { name: "교토 말차 소프트 아이스크림 & 야츠하시", type: "food" }
-        ]
+        mustItems: [{ name: "산넨자카 지브리(동구리 공화국) 굿즈", type: "shop" }, { name: "교토 말차 소프트 아이스크림 & 야츠하시", type: "food" }]
       },
       {
-        city: "교토", rank: 2, name: "후시미 이나리 신사 (천개 도리이) & 치이카와 본점", theme: "spot", itemType: "place", area: "교토 · 후시미", lat: 34.9671, lng: 135.7727, stayMin: 90,
+        id: "kyoto_02", city: "교토", rank: 2, name: "후시미 이나리 신사 (천개 도리이) & 치이카와 본점", theme: "spot", tags: ["kids", "food"], area: "교토 · 후시미", lat: 34.9671, lng: 135.7727, stayMin: 90,
         storeFeature: "붉은 도리이 터널 명소 + 입구 상점가에 '치이카와 모구모구 본점(교토 후시미점)' 위치!",
-        mustItems: [
-          { name: "치이카와 모구모구 본점 여우 인형·과자", type: "shop" },
-          { name: "이나리 참배길 유부초밥·길거리 간식", type: "food" }
-        ]
+        mustItems: [{ name: "치이카와 모구모구 본점 여우 인형·과자", type: "shop" }, { name: "이나리 참배길 유부초밥·길거리 간식", type: "food" }]
       },
       {
-        city: "교토", rank: 3, name: "아라시야마 치쿠린(대나무숲) & 도게츠교", theme: "spot", itemType: "place", area: "교토 · 아라시야마", lat: 35.0169, lng: 135.6713, stayMin: 120,
+        id: "kyoto_03", city: "교토", rank: 3, name: "아라시야마 치쿠린(대나무숲) & 도게츠교", theme: "spot", tags: ["kids", "food"], area: "교토 · 아라시야마", lat: 35.0169, lng: 135.6713, stayMin: 120,
         storeFeature: "울창한 대나무숲 산책과 메인 거리의 리락쿠마 찻집, 미피 베이커리, 응커피(% 아라비카)",
-        mustItems: [
-          { name: "아라시야마 유바 치즈 어묵바", type: "food" },
-          { name: "미피 사쿠라 키친 단팥빵 & 교토 한정 굿즈", type: "shop" },
-          { name: "% 아라비카(응커피) 교토 라떼", type: "food" }
-        ]
+        mustItems: [{ name: "아라시야마 유바 치즈 어묵바", type: "food" }, { name: "미피 사쿠라 키친 단팥빵 & 교토 한정 굿즈", type: "shop" }, { name: "% 아라비카(응커피) 교토 라떼", type: "food" }]
       },
       {
-        city: "교토", rank: 4, name: "교토 카와라마치 캐릭터거리 (닌텐도·치이카와·키디랜드)", theme: "goods", itemType: "place", area: "교토 · 카와라마치", lat: 35.0038, lng: 135.7689, stayMin: 90,
-        storeFeature: "타카시마야 닌텐도 교토점 + 치이카와 랜드 + 키디랜드 교토가 한 곳에 밀집!",
-        mustItems: [
-          { name: "치이카와 교토 한정 말차·기모노 키링", type: "shop" },
-          { name: "닌텐도 교토 한정 마리오 픽셀 굿즈", type: "shop" },
-          { name: "산리오 교토 한정 문구세트", type: "shop" }
-        ]
+        id: "kyoto_04", city: "교토", rank: 4, name: "교토 카와라마치 캐릭터거리 (닌텐도·치이카와·키디랜드)", theme: "goods", tags: ["indoor", "kids"], area: "교토 · 카와라마치", lat: 35.0038, lng: 135.7689, stayMin: 90,
+        storeFeature: "타카시마야 닌텐도 교토점 + 치이카와 랜드 + 키디랜드 교토가 한 곳에 밀집! (비 올 때 최고)",
+        mustItems: [{ name: "치이카와 교토 한정 말차·기모노 키링", type: "shop" }, { name: "닌텐도 교토 한정 마리오 픽셀 굿즈", type: "shop" }, { name: "산리오 교토 한정 문구세트", type: "shop" }]
       },
       {
-        city: "교토", rank: 5, name: "금각사 (킨카쿠지)", theme: "spot", itemType: "place", area: "교토 · 북부", lat: 35.0394, lng: 135.7292, stayMin: 60,
+        id: "kyoto_05", city: "교토", rank: 5, name: "금각사 (킨카쿠지)", theme: "spot", tags: ["kids"], area: "교토 · 북부", lat: 35.0394, lng: 135.7292, stayMin: 60,
         storeFeature: "호수 위에 비치는 황금빛 누각! 연못을 따라 한 바퀴 도는 평탄한 산책 코스로 가족 동반 최적",
-        mustItems: [
-          { name: "금각사 금박 말차 아이스크림", type: "food" }
-        ]
+        mustItems: [{ name: "금각사 금박 말차 아이스크림", type: "food" }]
       },
       {
-        city: "교토", rank: 6, name: "교토 로프트 (LOFT) & 니시키 시장", theme: "goods", itemType: "place", area: "교토 · 카와라마치", lat: 35.0052, lng: 135.7660, stayMin: 80,
-        storeFeature: "교토의 부엌 니시키 시장 길거리 먹방 + 바로 옆 교토 로프트 한정 문구 쇼핑",
-        mustItems: [
-          { name: "니시키 시장 타마고야키(계란말이) 꼬치", type: "food" },
-          { name: "교토 한정 일러스트 마스킹테이프·샤프", type: "shop" }
-        ]
+        id: "kyoto_06", city: "교토", rank: 6, name: "교토 로프트 (LOFT) & 니시키 시장", theme: "goods", tags: ["indoor", "food", "kids"], area: "교토 · 카와라마치", lat: 35.0052, lng: 135.7660, stayMin: 80,
+        storeFeature: "지붕 있는 니시키 시장 길거리 먹방 + 바로 옆 교토 로프트 한정 문구 쇼핑",
+        mustItems: [{ name: "니시키 시장 타마고야키(계란말이) 꼬치", type: "food" }, { name: "교토 한정 일러스트 마스킹테이프·샤프", type: "shop" }]
       },
       {
-        city: "교토", rank: 7, name: "스기약국 & 돈키호테 교토 카와라마치점", theme: "value", itemType: "place", area: "교토 · 카와라마치", lat: 35.0055, lng: 135.7685, stayMin: 60,
+        id: "kyoto_07", city: "교토", rank: 7, name: "스기약국 & 돈키호테 교토 카와라마치점", theme: "value", tags: ["indoor", "night"], area: "교토 · 카와라마치", lat: 35.0055, lng: 135.7685, stayMin: 60,
         storeFeature: "교토 시내 중심가 면세 쇼핑 스팟! 교토 우지 말차 과자류와 드럭스토어 제품 구매 최적",
-        mustItems: [
-          { name: "교토 우지 말차 킷캣 & 녹차 티백", type: "shop" },
-          { name: "요지야 기름종이 & 핸드크림", type: "shop" }
-        ]
+        mustItems: [{ name: "교토 우지 말차 킷캣 & 녹차 티백", type: "shop" }, { name: "요지야 기름종이 & 핸드크림", type: "shop" }]
       },
       {
-        city: "교토", rank: 8, name: "세븐일레븐 교토 기온점 (전통 흑백 간판)", theme: "cvs", itemType: "place", area: "교토 · 기온", lat: 35.0035, lng: 135.7755, stayMin: 20,
+        id: "kyoto_08", city: "교토", rank: 8, name: "기온 하나미코지 거리 & 야사카 신사", theme: "spot", tags: ["night"], area: "교토 · 기온", lat: 35.0036, lng: 135.7785, stayMin: 60,
+        storeFeature: "전통 목조 찻집(마치야) 거리와 밤에도 환하게 불 밝힌 야사카 신사 무대",
+        mustItems: [{ name: "기온 츠지리 말차 파르페", type: "food" }]
+      },
+      {
+        id: "kyoto_09", city: "교토", rank: 9, name: "은각사 (긴카쿠지) & 철학의 길", theme: "spot", tags: [], area: "교토 · 히가시야마", lat: 35.0270, lng: 135.7982, stayMin: 70,
+        storeFeature: "정갈한 모래 정원과 이끼 정원이 아름다운 사찰 & 개울가 따라 걷는 철학의 길",
+        mustItems: [{ name: "은각사 앞 슈크림빵 & 말차 간식", type: "food" }]
+      },
+      {
+        id: "kyoto_10", city: "교토", rank: 10, name: "우지 뵤도인 (10엔 동전 사찰) & 말차 거리", theme: "spot", tags: ["food"], area: "교토 · 우지", lat: 34.8893, lng: 135.8077, stayMin: 90,
+        storeFeature: "일본 10엔 동전 뒷면의 주인공! 세계 최고급 우지 말차 소바·디저트 본고장",
+        mustItems: [{ name: "나카무라 토키치 생차 젤리 & 말차 소바", type: "food" }]
+      },
+      {
+        id: "kyoto_11", city: "교토", rank: 11, name: "교토 요도바시 카메라 (문구·가챠·장난감층)", theme: "goods", tags: ["indoor", "kids"], area: "교토 · 교토역", lat: 34.9880, lng: 135.7595, stayMin: 60,
+        storeFeature: "교토역 바로 앞! 대형 문구점, 피규어·프라모델, 수백 대의 가챠 머신 완비",
+        mustItems: [{ name: "최신 가챠 뽑기 & 일본 샤프·볼펜", type: "shop" }]
+      },
+      {
+        id: "kyoto_12", city: "교토", rank: 12, name: "이온몰(AEON MALL) KYOTO", theme: "value", tags: ["indoor", "kids"], area: "교토 · 교토역", lat: 34.9825, lng: 135.7545, stayMin: 80,
+        storeFeature: "교토역 도보 5분 대형 쇼핑몰! 다이소, 유니클로, GU, 반다이 남코 크로스 스토어 입점",
+        mustItems: [{ name: "이온 마트 현지 과자·컵라면·드립커피", type: "shop" }]
+      },
+      {
+        id: "kyoto_13", city: "교토", rank: 13, name: "교토 국제 만화 뮤지엄", theme: "goods", tags: ["indoor", "kids"], area: "교토 · 나카교", lat: 35.0115, lng: 135.7594, stayMin: 90,
+        storeFeature: "비 오는 날 중3·초6 아이들에게 최고! 수만 권의 만화책 열람과 캐리커처 체험",
+        mustItems: [{ name: "만화 뮤지엄 한정 일러스트 굿즈", type: "shop" }]
+      },
+      {
+        id: "kyoto_14", city: "교토", rank: 14, name: "교토 수족관 & 우메코지 공원", theme: "spot", tags: ["indoor", "kids"], area: "교토 · 교토역", lat: 34.9873, lng: 135.7475, stayMin: 110,
+        storeFeature: "교토역 인근 실내 수족관! 특별천연기념물 왕도롱뇽과 돌고래 쇼 관람",
+        mustItems: [{ name: "왕도롱뇽 인형 & 수족관 한정 간식", type: "shop" }]
+      },
+      {
+        id: "kyoto_15", city: "교토", rank: 15, name: "니조성 (니조조)", theme: "spot", tags: ["kids"], area: "교토 · 나카교", lat: 35.0142, lng: 135.7482, stayMin: 75,
+        storeFeature: "걸을 때마다 휘파람 소리가 나는 '우구이스바리(휘파람 마루)'로 유명한 도쿠가와 이에야스의 성",
+        mustItems: [{ name: "니조성 말차 소프트아이스크림", type: "food" }]
+      },
+      {
+        id: "kyoto_16", city: "교토", rank: 16, name: "교토 타워 & 타워 샌드 (푸드홀·기념품)", theme: "spot", tags: ["indoor", "night", "food"], area: "교토 · 교토역", lat: 34.9875, lng: 135.7592, stayMin: 60,
+        storeFeature: "교토역 정면 랜드마크 전망대 야경 + 지하 1층 교토 맛집 집결 푸드홀",
+        mustItems: [{ name: "교토 타워 전망대 360도 야경", type: "place" }]
+      },
+      {
+        id: "kyoto_17", city: "교토", rank: 17, name: "폰토초 골목 & 가모가와 강변 산책", theme: "spot", tags: ["food", "night"], area: "교토 · 카와라마치", lat: 35.0065, lng: 135.7712, stayMin: 70,
+        storeFeature: "붉은 제등이 켜지는 저녁 시간대 최고의 분위기! 교토 규카츠·야키토리·라멘 맛집 밀집",
+        mustItems: [{ name: "교토 규카츠 가쓰규 정식", type: "food" }]
+      },
+      {
+        id: "kyoto_18", city: "교토", rank: 18, name: "사카바야시/카츠쿠라 돈카츠 교토역점 (포르타)", theme: "spot", tags: ["food", "indoor"], area: "교토 · 교토역", lat: 34.9862, lng: 135.7585, stayMin: 60,
+        storeFeature: "교토역 지하상가 포르타 내 위치한 교토 3대 돈카츠 맛집! 직접 참깨를 갈아 먹는 재미",
+        mustItems: [{ name: "카츠쿠라 히레카츠(안심 돈카츠) 정식", type: "food" }]
+      },
+      {
+        id: "kyoto_19", city: "교토", rank: 19, name: "무인양품(MUJI) 교토 발(BAL) 플래그십", theme: "value", tags: ["indoor"], area: "교토 · 카와라마치", lat: 35.0072, lng: 135.7688, stayMin: 60,
+        storeFeature: "교토 감성 편집샵 건물 BAL 내 대형 무인양품! 쾌적하고 품목이 매우 다양함",
+        mustItems: [{ name: "무인양품 여행용 파우치·과자류", type: "shop" }]
+      },
+      {
+        id: "kyoto_20", city: "교토", rank: 20, name: "난젠지 수로각 & 블루보틀 교토 카페", theme: "spot", tags: ["food"], area: "교토 · 히가시야마", lat: 35.0112, lng: 135.7925, stayMin: 70,
+        storeFeature: "붉은 벽돌 아치형 수로각 포토존과 전통 가옥을 개조한 블루보틀 교토 1호점",
+        mustItems: [{ name: "블루보틀 교토 한정 에코백·라떼", type: "food" }]
+      },
+      {
+        id: "kyoto_21", city: "교토", rank: 21, name: "아라시야마 토롯코 열차 (사카노 관광열차)", theme: "spot", tags: ["kids"], area: "교토 · 아라시야마", lat: 35.0185, lng: 135.6812, stayMin: 60,
+        storeFeature: "호즈강 협곡을 따라 달리는 클래식 관광 열차! 아이들과 부모님 모두 만족도 최상",
+        mustItems: [{ name: "토롯코 열차 창밖 협곡 뷰 감상", type: "place" }]
+      },
+      {
+        id: "kyoto_22", city: "교토", rank: 22, name: "도지(교왕호국사) 오층탑", theme: "spot", tags: [], area: "교토 · 교토역", lat: 34.9805, lng: 135.7478, stayMin: 50,
+        storeFeature: "일본에서 가장 높은 목조 오층탑(55m)과 연못 정원이 어우러진 유네스코 세계유산",
+        mustItems: [{ name: "오층탑과 연못 인증샷", type: "place" }]
+      },
+      {
+        id: "kyoto_23", city: "교토", rank: 23, name: "세븐일레븐 교토 기온점 (전통 흑백 간판)", theme: "cvs", tags: ["food", "night", "indoor"], area: "교토 · 기온", lat: 35.0035, lng: 135.7755, stayMin: 20,
         storeFeature: "교토 경관 조례에 맞춰 흑백 톤 간판을 단 특별한 편의점! 우지 말차 디저트 구비",
-        mustItems: [
-          { name: "교토 한정 우지 말차 모찌·푸딩", type: "food" },
-          { name: "세븐일레븐 타마고산도", type: "food" }
-        ]
+        mustItems: [{ name: "교토 한정 우지 말차 모찌·푸딩", type: "food" }, { name: "세븐일레븐 타마고산도", type: "food" }]
+      },
+      {
+        id: "kyoto_24", city: "교토", rank: 24, name: "로손 교토역 하치조구치점", theme: "cvs", tags: ["food", "night", "indoor"], area: "교토 · 교토역", lat: 34.9845, lng: 135.7590, stayMin: 20,
+        storeFeature: "오사카 복귀 전철/버스 타기 전 간식과 음료 챙기기 좋은 역세권 편의점",
+        mustItems: [{ name: "로손 모찌롤 & 가라아게군", type: "food" }]
       },
 
-      // ================= [고베] =================
+      // ================= [고베 16곳] =================
       {
-        city: "고베", rank: 1, name: "고베 하버랜드 umie & 모자이크 & 호빵맨 박물관", theme: "goods", itemType: "place", area: "고베 · 하버랜드", lat: 34.6788, lng: 135.1825, stayMin: 120,
+        id: "kobe_01", city: "고베", rank: 1, name: "고베 하버랜드 umie & 모자이크 & 호빵맨 박물관", theme: "goods", tags: ["indoor", "kids", "night"], area: "고베 · 하버랜드", lat: 34.6788, lng: 135.1825, stayMin: 120,
         storeFeature: "고베 여행 1순위! 호빵맨 박물관(1층 무료 굿즈샵) + 산리오·디즈니스토어·포트타워 바다 야경",
-        mustItems: [
-          { name: "호빵맨 잼아저씨 빵공장 캐릭터 빵", type: "food" },
-          { name: "고베 한정 호빵맨·세균맨 굿즈", type: "shop" },
-          { name: "umie 디즈니스토어·산리오 캐릭터 문구", type: "shop" }
-        ]
+        mustItems: [{ name: "호빵맨 잼아저씨 빵공장 캐릭터 빵", type: "food" }, { name: "고베 한정 호빵맨·세균맨 굿즈", type: "shop" }, { name: "umie 디즈니스토어·산리오 캐릭터 문구", type: "shop" }]
       },
       {
-        city: "고베", rank: 2, name: "산노미야 센터가 & 고베 로프트(LOFT)·키디랜드", theme: "goods", itemType: "place", area: "고베 · 산노미야", lat: 34.6915, lng: 135.1920, stayMin: 80,
+        id: "kobe_02", city: "고베", rank: 2, name: "산노미야 센터가 & 고베 로프트(LOFT)·키디랜드", theme: "goods", tags: ["indoor", "kids"], area: "고베 · 산노미야", lat: 34.6915, lng: 135.1920, stayMin: 80,
         storeFeature: "비 맞아도 쾌적한 아케이드 상점가! 로프트, 키디랜드, 반다이 가챠 크로스 스토어 밀집",
-        mustItems: [
-          { name: "고베 한정 세일러복·항구 키티/치이카와 키링", type: "shop" },
-          { name: "일본 문구 신상 샤프·지우개", type: "shop" }
-        ]
+        mustItems: [{ name: "고베 한정 세일러복·항구 키티/치이카와 키링", type: "shop" }, { name: "일본 문구 신상 샤프·지우개", type: "shop" }]
       },
       {
-        city: "고베", rank: 3, name: "난킨마치 (차이나타운) & 산노미야 고베규 거리", theme: "spot", itemType: "place", area: "고베 · 모토마치", lat: 34.6881, lng: 135.1881, stayMin: 90,
+        id: "kobe_03", city: "고베", rank: 3, name: "난킨마치 (차이나타운) & 산노미야 고베규 거리", theme: "spot", tags: ["food", "kids"], area: "고베 · 모토마치", lat: 34.6881, lng: 135.1881, stayMin: 90,
         storeFeature: "일본 3대 차이나타운 길거리 먹방(부타망·고베규 꼬치) & 가성비 고베규 철판구이 런치",
-        mustItems: [
-          { name: "로쇼키 돼지고기 만두(부타망) & 10원빵", type: "food" },
-          { name: "고베규 철판 스테이크 런치 세트", type: "food" }
-        ]
+        mustItems: [{ name: "로쇼키 돼지고기 만두(부타망) & 10원빵", type: "food" }, { name: "고베규 철판 스테이크 런치 세트", type: "food" }]
       },
       {
-        city: "고베", rank: 4, name: "고베 동물왕국 (Kobe Animal Kingdom)", theme: "spot", itemType: "place", area: "고베 · 포트아일랜드", lat: 34.6548, lng: 135.2225, stayMin: 150,
-        storeFeature: "울타리 없는 실내형 동물원! 카피바라·알파카·레서판다·넓적부리황새를 코앞에서 만나는 가족 최고 인기 코스",
-        mustItems: [
-          { name: "카피바라 먹이주기 & 한정 봉제인형", type: "shop" },
-          { name: "동물왕국 귀여운 동물 모양 카레·디저트", type: "food" }
-        ]
+        id: "kobe_04", city: "고베", rank: 4, name: "고베 동물왕국 (Kobe Animal Kingdom)", theme: "spot", tags: ["indoor", "kids"], area: "고베 · 포트아일랜드", lat: 34.6548, lng: 135.2225, stayMin: 150,
+        storeFeature: "울타리 없는 전천후 실내형 동물원! 카피바라·알파카·레서판다를 코앞에서 만나는 가족 최고 인기 코스",
+        mustItems: [{ name: "카피바라 먹이주기 & 한정 봉제인형", type: "shop" }, { name: "동물왕국 귀여운 동물 모양 카레·디저트", type: "food" }]
       },
       {
-        city: "고베", rank: 5, name: "기타노이진칸 거리 & 스타벅스 북야이진칸점", theme: "spot", itemType: "place", area: "고베 · 기타노", lat: 34.7009, lng: 135.1895, stayMin: 80,
+        id: "kobe_05", city: "고베", rank: 5, name: "기타노이진칸 거리 & 스타벅스 북야이진칸점", theme: "spot", tags: ["food"], area: "고베 · 기타노", lat: 34.7009, lng: 135.1895, stayMin: 80,
         storeFeature: "이국적인 서양식 저택 거리 산책 & 등록유형문화재로 지정된 고풍스러운 스타벅스 포토존",
-        mustItems: [
-          { name: "고베 육갑산(롯코산) 목장 우유 아이스크림", type: "food" }
-        ]
+        mustItems: [{ name: "고베 육갑산(롯코산) 목장 우유 아이스크림", type: "food" }]
       },
       {
-        city: "고베", rank: 6, name: "메가 돈키호테 & 고베 프란츠(Frantz) 산노미야", theme: "value", itemType: "place", area: "고베 · 산노미야", lat: 34.6930, lng: 135.1905, stayMin: 70,
+        id: "kobe_06", city: "고베", rank: 6, name: "메가 돈키호테 & 고베 프란츠(Frantz) 산노미야", theme: "value", tags: ["indoor", "food"], area: "고베 · 산노미야", lat: 34.6930, lng: 135.1905, stayMin: 70,
         storeFeature: "오사카보다 한적한 면세 쇼핑 + 고베 명물 항아리 푸딩 & 딸기 트뤼플 초콜릿 구매 필수",
-        mustItems: [
-          { name: "고베 프란츠 마법의 항아리 푸딩", type: "food" },
-          { name: "고베 딸기 트뤼플 화이트 초콜릿", type: "shop" }
-        ]
+        mustItems: [{ name: "고베 프란츠 마법의 항아리 푸딩", type: "food" }, { name: "고베 딸기 트뤼플 화이트 초콜릿", type: "shop" }]
       },
       {
-        city: "고베", rank: 7, name: "아토아(átoa) 극장형 아쿠아리움 & 로손 하버랜드점", theme: "cvs", itemType: "place", area: "고베 · 워터프론트", lat: 34.6822, lng: 135.1865, stayMin: 60,
-        storeFeature: "디지털 아트와 수족관이 결합된 포토존 명소 + 인근 편의점 간식 보급",
-        mustItems: [
-          { name: "로손 모찌롤 & 가라아게군", type: "food" }
-        ]
+        id: "kobe_07", city: "고베", rank: 7, name: "고베 포트타워 & 메리켄파크 (BE KOBE 조형물)", theme: "spot", tags: ["night", "kids"], area: "고베 · 워터프론트", lat: 34.6826, lng: 135.1867, stayMin: 60,
+        storeFeature: "리뉴얼 오픈한 붉은 고베 포트타워 전망대 & 바다 앞 BE KOBE 가족 인증샷 명소",
+        mustItems: [{ name: "BE KOBE 조형물 가족 인증샷", type: "place" }]
+      },
+      {
+        id: "kobe_08", city: "고베", rank: 8, name: "아리마 온천 (금천·은천 족욕 & 탄산센베이)", theme: "spot", tags: ["food"], area: "고베 · 아리마온천", lat: 34.7975, lng: 135.2478, stayMin: 120,
+        storeFeature: "일본 3대 고온천! 무료 족욕탕 체험과 구운 지 5초 만에 먹어야 바삭한 나마 탄산센베이",
+        mustItems: [{ name: "유통기한 5초 나마 탄산센베이 & 온천 만쥬", type: "food" }]
+      },
+      {
+        id: "kobe_09", city: "고베", rank: 9, name: "아토아(átoa) 극장형 아쿠아리움", theme: "spot", tags: ["indoor", "kids", "night"], area: "고베 · 워터프론트", lat: 34.6822, lng: 135.1865, stayMin: 80,
+        storeFeature: "디지털 아트와 수족관이 결합된 환상적인 실내 포토존 명소! 비 오는 날 강추",
+        mustItems: [{ name: "구형 수조 아쿠아 룸 포토존", type: "place" }]
+      },
+      {
+        id: "kobe_10", city: "고베", rank: 10, name: "롯코산 전망대 & 롯코 가든 테라스 (일본 3대 야경)", theme: "spot", tags: ["night"], area: "고베 · 롯코산", lat: 34.7645, lng: 135.2442, stayMin: 90,
+        storeFeature: "1,000만 불짜리 야경으로 불리는 오사카만~고베항 파노라마 야경 명소",
+        mustItems: [{ name: "롯코 시다레 전망대 야경 감상", type: "place" }]
+      },
+      {
+        id: "kobe_11", city: "고베", rank: 11, name: "고베 산다 프리미엄 아울렛", theme: "value", tags: ["indoor"], area: "고베 · 북부", lat: 34.8588, lng: 135.1815, stayMin: 150,
+        storeFeature: "서일본 최대 규모 프리미엄 아울렛! 로스앤젤레스 파사데나 풍의 쾌적한 명품·스포츠 쇼핑",
+        mustItems: [{ name: "스포츠·캐주얼 브랜드 특가 득템", type: "shop" }]
+      },
+      {
+        id: "kobe_12", city: "고베", rank: 12, name: "스테이크랜드 고베관 (가성비 고베규 철판구이)", theme: "spot", tags: ["food", "indoor"], area: "고베 · 산노미야", lat: 34.6938, lng: 135.1912, stayMin: 70,
+        storeFeature: "셰프가 눈앞 철판에서 마늘 칩과 함께 구워주는 합리적 가격의 고베규 스테이크 런치",
+        mustItems: [{ name: "고베규 스테이크 런치 세트", type: "food" }]
+      },
+      {
+        id: "kobe_13", city: "고베", rank: 13, name: "이쿠타 신사 (산노미야 도심 속 붉은 신사)", theme: "spot", tags: [], area: "고베 · 산노미야", lat: 34.6945, lng: 135.1906, stayMin: 40,
+        storeFeature: "산노미야역 도보 3분! 1,800년 역사의 신사로 연애·인연 부적과 숲속 산책길이 매력적",
+        mustItems: [{ name: "이쿠타 신사 물점(미즈미쿠지) 체험", type: "place" }]
+      },
+      {
+        id: "kobe_14", city: "고베", rank: 14, name: "고베 유즈루하 신사 & 수마 시월드 (돌고래·범고래)", theme: "spot", tags: ["indoor", "kids"], area: "고베 · 서부(스마)", lat: 34.6438, lng: 135.1282, stayMin: 150,
+        storeFeature: "서일본 유일의 범고래(오르카) 퍼포먼스를 볼 수 있는 초대형 바다 앞 아쿠아리움!",
+        mustItems: [{ name: "오르카(범고래) 스타디움 쇼 관람", type: "place" }]
+      },
+      {
+        id: "kobe_15", city: "고베", rank: 15, name: "모토마치 상점가 & 다이마루 고베점", theme: "value", tags: ["indoor", "food"], area: "고베 · 모토마치", lat: 34.6888, lng: 135.1885, stayMin: 70,
+        storeFeature: "고풍스러운 유럽풍 백화점과 1.2km 아케이드 상점가! 유하이무 바움쿠헨 본점 위치",
+        mustItems: [{ name: "유하이무(Juchheim) 본점 바움쿠헨", type: "shop" }]
+      },
+      {
+        id: "kobe_16", city: "고베", rank: 16, name: "로손 하버랜드 모자이크 앞점", theme: "cvs", tags: ["food", "night", "indoor"], area: "고베 · 하버랜드", lat: 34.6782, lng: 135.1835, stayMin: 20,
+        storeFeature: "야경 산책 후 간식과 음료를 보급하기 좋은 하버랜드 편의점",
+        mustItems: [{ name: "로손 모찌롤 & 가라아게군", type: "food" }]
       },
 
-      // ================= [나라] =================
+      // ================= [나라 12곳] =================
       {
-        city: "나라", rank: 1, name: "나라 공원 (사슴공원)", theme: "spot", itemType: "place", area: "나라 · 나라공원", lat: 34.6851, lng: 135.8430, stayMin: 90,
+        id: "nara_01", city: "나라", rank: 1, name: "나라 공원 (사슴공원)", theme: "spot", tags: ["kids"], area: "나라 · 나라공원", lat: 34.6851, lng: 135.8430, stayMin: 90,
         storeFeature: "나라 여행 1위! 1,300여 마리의 야생 꽃사슴과 교감하며 사슴 센베이(전병) 먹이주기 체험",
-        mustItems: [
-          { name: "사슴 센베이 (전병 200엔) 체험", type: "place" },
-          { name: "나라 사슴 캐릭터 뿔 머리띠·인형", type: "shop" }
-        ]
+        mustItems: [{ name: "사슴 센베이 (전병 200엔) 체험", type: "place" }, { name: "나라 사슴 캐릭터 뿔 머리띠·인형", type: "shop" }]
       },
       {
-        city: "나라", rank: 2, name: "도다이지 (동대사 대불전)", theme: "spot", itemType: "place", area: "나라 · 나라공원", lat: 34.6890, lng: 135.8398, stayMin: 70,
+        id: "nara_02", city: "나라", rank: 2, name: "도다이지 (동대사 대불전)", theme: "spot", tags: ["indoor", "kids"], area: "나라 · 나라공원", lat: 34.6890, lng: 135.8398, stayMin: 70,
         storeFeature: "세계 최대 규모의 목조 건축물과 높이 15m 거대 청동 대불상(대불 콧구멍 기둥 통과 체험)",
-        mustItems: [
-          { name: "도다이지 기념 스탬프 & 부적", type: "shop" }
-        ]
+        mustItems: [{ name: "도다이지 기념 스탬프 & 부적", type: "shop" }]
       },
       {
-        city: "나라", rank: 3, name: "히가시무키 상점가 & 나카타니도 (고속 쑥떡)", theme: "goods", itemType: "place", area: "나라 · 긴테쓰나라역", lat: 34.6828, lng: 135.8292, stayMin: 60,
-        storeFeature: "긴테쓰 나라역 바로 앞 아케이드! 초고속 떡메치기 퍼포먼스로 유명한 나카타니도 & 나라 한정 캐릭터 굿즈샵",
-        mustItems: [
-          { name: "나카타니도 갓 찧은 쑥떡(요모기모치)", type: "food" },
-          { name: "나라 한정 사슴 탈 쓴 치이카와·산리오 키링", type: "shop" }
-        ]
+        id: "nara_03", city: "나라", rank: 3, name: "히가시무키 상점가 & 나카타니도 (고속 쑥떡)", theme: "goods", tags: ["indoor", "food", "kids"], area: "나라 · 긴테쓰나라역", lat: 34.6828, lng: 135.8292, stayMin: 60,
+        storeFeature: "지붕 있는 아케이드! 초고속 떡메치기 퍼포먼스로 유명한 나카타니도 & 나라 한정 캐릭터 굿즈샵",
+        mustItems: [{ name: "나카타니도 갓 찧은 쑥떡(요모기모치)", type: "food" }, { name: "나라 한정 사슴 탈 쓴 치이카와·산리오 키링", type: "shop" }]
       },
       {
-        city: "나라", rank: 4, name: "카스가타이샤 신사 (붉은 등롱길)", theme: "spot", itemType: "place", area: "나라 · 나라공원", lat: 34.6814, lng: 135.8484, stayMin: 60,
+        id: "nara_04", city: "나라", rank: 4, name: "카스가타이샤 신사 (붉은 등롱길)", theme: "spot", tags: [], area: "나라 · 나라공원", lat: 34.6814, lng: 135.8484, stayMin: 60,
         storeFeature: "숲속 참배길을 따라 수천 개의 석등롱과 청동 등롱이 늘어선 유네스코 세계유산(사슴 오미쿠지 인기)",
-        mustItems: [
-          { name: "흰 사슴 모양 나무 오미쿠지(운세뽑기)", type: "shop" }
-        ]
+        mustItems: [{ name: "흰 사슴 모양 나무 오미쿠지(운세뽑기)", type: "shop" }]
       },
       {
-        city: "나라", rank: 5, name: "나라마치 전통 거리 & 다이소/드럭스토어 나라역점", theme: "value", itemType: "place", area: "나라 · 나라마치", lat: 34.6785, lng: 135.8315, stayMin: 60,
+        id: "nara_05", city: "나라", rank: 5, name: "나라마치 전통 거리 & 다이소/드럭스토어 나라역점", theme: "value", tags: ["indoor", "food"], area: "나라 · 나라마치", lat: 34.6785, lng: 135.8315, stayMin: 60,
         storeFeature: "에도시대 전통 목조 가옥 골목 산책 & 역세권 가성비 잡화·드럭스토어 쇼핑",
-        mustItems: [
-          { name: "나라 명물 감잎 초밥(카키노하즈시)", type: "food" },
-          { name: "나라 사슴 일러스트 손수건·파우치", type: "shop" }
-        ]
+        mustItems: [{ name: "나라 명물 감잎 초밥(카키노하즈시)", type: "food" }, { name: "나라 사슴 일러스트 손수건·파우치", type: "shop" }]
       },
       {
-        city: "나라", rank: 6, name: "세븐일레븐 & 로손 긴테쓰 나라역 앞점", theme: "cvs", itemType: "place", area: "나라 · 나라역", lat: 34.6838, lng: 135.8280, stayMin: 20,
+        id: "nara_06", city: "나라", rank: 6, name: "와카쿠사야마 언덕 전망대 (나라 시내 전경)", theme: "spot", tags: ["kids"], area: "나라 · 나라공원", lat: 34.6911, lng: 135.8538, stayMin: 60,
+        storeFeature: "탁 트인 잔디 언덕 위에서 사슴들과 함께 나라 분지 전체를 내려다보는 힐링 명소",
+        mustItems: [{ name: "언덕 위 잔디밭 사슴 인증샷", type: "place" }]
+      },
+      {
+        id: "nara_07", city: "나라", rank: 7, name: "고후쿠지 (흥복사 오층탑)", theme: "spot", tags: [], area: "나라 · 나라공원", lat: 34.6832, lng: 135.8312, stayMin: 40,
+        storeFeature: "긴테쓰 나라역에서 나라공원으로 걸어가는 길목에 위치한 유네스코 세계유산 오층탑",
+        mustItems: [{ name: "고후쿠지 오층탑 사슴 포토존", type: "place" }]
+      },
+      {
+        id: "nara_08", city: "나라", rank: 8, name: "나라 국립 박물관 (불교미술관)", theme: "spot", tags: ["indoor"], area: "나라 · 나라공원", lat: 34.6838, lng: 135.8385, stayMin: 70,
+        storeFeature: "나라공원에서 갑자기 비가 내릴 때 대피 겸 관람하기 좋은 쾌적한 실내 국립 박물관",
+        mustItems: [{ name: "박물관 뮤지엄샵 사슴 굿즈", type: "shop" }]
+      },
+      {
+        id: "nara_09", city: "나라", rank: 9, name: "멘토안 (우동 주머니 킨차쿠 우동)", theme: "spot", tags: ["food", "indoor", "kids"], area: "나라 · 히가시무키", lat: 34.6820, lng: 135.8295, stayMin: 50,
+        storeFeature: "커다란 유부 주머니 속에 쫄깃한 우동 면이 들어있는 이색 맛집! 아이들이 정말 좋아함",
+        mustItems: [{ name: "킨차쿠(유부주머니) 키츠네 우동", type: "food" }]
+      },
+      {
+        id: "nara_10", city: "나라", rank: 10, name: "마호로바 다이부쓰 푸딩 본점 (대불 푸딩)", theme: "spot", tags: ["food"], area: "나라 · 긴테쓰나라역", lat: 34.6841, lng: 135.8285, stayMin: 25,
+        storeFeature: "대불님 얼굴이 그려진 병에 담긴 진하고 부드러운 나라 명물 커스터드 푸딩!",
+        mustItems: [{ name: "다이부쓰 커스터드 푸딩 & 말차 푸딩", type: "food" }]
+      },
+      {
+        id: "nara_11", city: "나라", rank: 11, name: "나라 킨교 뮤지엄 (금붕어 아트 아쿠아리움)", theme: "spot", tags: ["indoor", "kids"], area: "나라 · 서부(미나라)", lat: 34.6845, lng: 135.7985, stayMin: 70,
+        storeFeature: "일본 최대급 실내 금붕어 엔터테인먼트 공간! 화려한 조명과 포토존으로 비 오는 날 추천",
+        mustItems: [{ name: "다이아몬드 금붕어 포토존 인증샷", type: "place" }]
+      },
+      {
+        id: "nara_12", city: "나라", rank: 12, name: "세븐일레븐 & 로손 긴테쓰 나라역 앞점", theme: "cvs", tags: ["food", "night", "indoor"], area: "나라 · 나라역", lat: 34.6838, lng: 135.8280, stayMin: 20,
         storeFeature: "오사카·교토로 이동하는 전철 타기 전 간식과 커피 충전하기 좋은 역 앞 편의점",
-        mustItems: [
-          { name: "세븐일레븐 타마고산도 & 스무디", type: "food" },
-          { name: "로손 모찌롤 & 가라아게군", type: "food" }
-        ]
+        mustItems: [{ name: "세븐일레븐 타마고산도 & 스무디", type: "food" }, { name: "로손 모찌롤 & 가라아게군", type: "food" }]
       }
     ];
+
+    // 런타임 카탈로그 (기본 92개 DB로 초기화 후 Firestore 'catalog_spots'와 실시간 동기화)
+    let KANSAI_CATALOG = [...DEFAULT_KANSAI_DB];
 
     let currentUser = localStorage.getItem("osaka_v3_user") || "";
     let basketMode = "personal";
@@ -782,16 +912,15 @@
     let familyDayFilter = 0;
     let familyTypeFilter = "all";
     let mapTheme = "persona";
+    let mapSituation = "all";
     let currentRouteDay = 1;
     let currentJpyToKrw = 9.05;
     let showSeasonRecList = true;
 
-    // 바구니 입력창 실시간 위치 바인딩 상태
-    let pendingLocation = null; // { name, city, lat, lng, stayMin, source }
+    let pendingLocation = null;
     let autoCompleteCandidates = [];
     let searchDebounceTimer = null;
 
-    // 사후 위치 지정 모달 상태
     let locPickerTargetItemId = null;
     let locPickerCandidates = [];
     let locPickerDebounceTimer = null;
@@ -821,11 +950,6 @@
     let routeMap = null;
     let routeLayerGroup = null;
 
-    window.scrollHorizontalBar = (elementId, offset) => {
-      const bar = document.getElementById(elementId);
-      if (bar) bar.scrollBy({ left: offset, behavior: "smooth" });
-    };
-
     function getTripDaysCount() {
       if (!masterConfig.startDate || !masterConfig.endDate) return 4;
       const s = new Date(masterConfig.startDate);
@@ -842,7 +966,7 @@
       return `${dayIndex}일차(${d.getMonth() + 1}/${d.getDate()} ${daysKor[d.getDay()]})`;
     }
 
-    // --- 실시간 환율 조회 (JPY -> KRW) ---
+    // --- 실시간 환율 조회 ---
     window.fetchLiveFxRate = async (isManual = false) => {
       const btn = document.getElementById("fxRefreshBtn");
       const label = document.getElementById("fxRateLabel");
@@ -860,7 +984,7 @@
           return;
         }
       } catch (err) {
-        console.warn("실시간 환율 조회 실패, 기본 환율 유지:", err);
+        console.warn("실시간 환율 조회 실패:", err);
       }
       if (btn) btn.innerText = "🔄 실시간";
     };
@@ -1033,7 +1157,7 @@
       }
     };
 
-    // --- 무료 지오코딩 검색(Photon API - 간사이 권역 필터링) + 내부 카탈로그 하이브리드 검색 ---
+    // --- 3. 하이브리드 장소 검색 (확장 92곳 DB + Photon API) ---
     function detectKansaiCity(lat, lng, rawText = "") {
       if (rawText.includes("교토") || rawText.includes("Kyoto") || rawText.includes("京都") || lat > 34.92) return "교토";
       if (rawText.includes("고베") || rawText.includes("Kobe") || rawText.includes("神戸") || lng < 135.30) return "고베";
@@ -1046,10 +1170,15 @@
       if (q.length < 2) return [];
 
       const qLower = q.toLowerCase();
-      // 1. 내부 인기 카탈로그 매칭
       const localMatches = KANSAI_CATALOG
-        .filter(c => c.name.toLowerCase().includes(qLower) || c.area.toLowerCase().includes(qLower) || c.city.includes(q))
-        .slice(0, 4)
+        .filter(c =>
+          c.name.toLowerCase().includes(qLower) ||
+          c.area.toLowerCase().includes(qLower) ||
+          c.city.includes(q) ||
+          (c.storeFeature && c.storeFeature.toLowerCase().includes(qLower))
+        )
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, 6)
         .map(c => ({
           name: c.name,
           city: c.city,
@@ -1057,10 +1186,9 @@
           lat: c.lat,
           lng: c.lng,
           stayMin: c.stayMin,
-          source: "인기추천"
+          source: "추천DB"
         }));
 
-      // 2. Photon 무료 지오코딩 API (간사이 중심 좌표: 34.78, 135.55)
       let remoteMatches = [];
       try {
         const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lat=34.78&lon=135.55&limit=8`);
@@ -1078,17 +1206,9 @@
               const subParts = [p.city || p.county || p.state, p.district || p.suburb || p.street].filter(Boolean);
               const addrStr = subParts.join(" · ") || "간사이 권역";
               const city = detectKansaiCity(lat, lng, `${placeName} ${addrStr}`);
-              return {
-                name: placeName,
-                city,
-                address: addrStr,
-                lat,
-                lng,
-                stayMin: 70,
-                source: "지도검색"
-              };
+              return { name: placeName, city, address: addrStr, lat, lng, stayMin: 70, source: "지도검색" };
             })
-            .slice(0, 5);
+            .slice(0, 4);
         }
       } catch (e) {
         console.warn("지도 장소 자동완성 조회 실패:", e);
@@ -1100,10 +1220,9 @@
           merged.push(rm);
         }
       });
-      return merged.slice(0, 7);
+      return merged.slice(0, 8);
     }
 
-    // --- 3. 2단계 바구니 로직 & 실시간 자동완성 ---
     window.onItemTypeChange = () => {
       const type = document.getElementById("itemType").value;
       const inp = document.getElementById("itemTitle");
@@ -1111,7 +1230,7 @@
         inp.placeholder = "살 물건 이름 (예: 동전파스, 쿠루토가 샤프)";
         document.getElementById("titleAutoCompleteBox").classList.add("hidden");
       } else {
-        inp.placeholder = "장소/맛집 이름 입력 (자동검색)";
+        inp.placeholder = "장소/맛집 이름 입력 (DB+지도 자동검색)";
       }
     };
 
@@ -1132,12 +1251,12 @@
 
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(async () => {
-        box.innerHTML = `<div class="px-3 py-2 text-[11px] text-gray-400">🔍 '${text}' 위치 검색 중...</div>`;
+        box.innerHTML = `<div class="px-3 py-2 text-[11px] text-gray-400">🔍 '${text}' DB 및 지도 위치 검색 중...</div>`;
         box.classList.remove("hidden");
 
         autoCompleteCandidates = await searchKansaiPlaces(text);
         if (autoCompleteCandidates.length === 0) {
-          box.innerHTML = `<div class="px-3 py-2 text-[11px] text-gray-400">일치하는 지도 검색 결과가 없습니다. 그대로 담거나 영문/일문으로 검색해 보세요.</div>`;
+          box.innerHTML = `<div class="px-3 py-2 text-[11px] text-gray-400">일치하는 검색 결과가 없습니다. 그대로 담거나 영문/일문으로 검색해 보세요.</div>`;
           return;
         }
 
@@ -1147,12 +1266,12 @@
               <div class="text-xs font-bold text-gray-800 truncate">${cand.name}</div>
               <div class="text-[10px] text-gray-500 truncate">${cand.address}</div>
             </div>
-            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded shrink-0 ${cand.source === '인기추천' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-700'}">
-              📍 ${cand.city} 선택
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded shrink-0 ${cand.source === '추천DB' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-700'}">
+              📍 ${cand.city} (${cand.source})
             </span>
           </button>
         `).join("");
-      }, 320);
+      }, 300);
     };
 
     window.selectAutoCompleteCandidate = (idx) => {
@@ -1172,7 +1291,6 @@
       document.getElementById("selectedLocIndicator").classList.add("hidden");
     };
 
-    // 사후 위치 지정/수정 모달 제어
     window.openLocPickerModal = async (itemId) => {
       const item = basketItems.find(i => i.id === itemId);
       if (!item) return;
@@ -1201,7 +1319,7 @@
         box.innerHTML = `<div class="p-4 text-center text-xs text-gray-400">2글자 이상 입력해 주세요.</div>`;
         return;
       }
-      box.innerHTML = `<div class="p-4 text-center text-xs text-gray-400">🔍 간사이 지도에서 '${q}' 찾는 중...</div>`;
+      box.innerHTML = `<div class="p-4 text-center text-xs text-gray-400">🔍 간사이 DB 및 지도에서 '${q}' 찾는 중...</div>`;
       locPickerCandidates = await searchKansaiPlaces(q);
 
       if (locPickerCandidates.length === 0) {
@@ -1215,9 +1333,7 @@
             <div class="text-xs font-bold text-gray-900 truncate">${cand.name}</div>
             <div class="text-[11px] text-gray-500 truncate">${cand.address}</div>
           </div>
-          <span class="bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0">
-            📍 이 위치로 확정
-          </span>
+          <span class="bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shrink-0">📍 이 위치로 확정</span>
         </button>
       `).join("");
     };
@@ -1263,7 +1379,7 @@
       familyTypeFilter = type;
       document.querySelectorAll(".ftype-btn").forEach(b => {
         const active = b.dataset.ftype === type;
-        b.className = `ftype-btn px-2.5 py-1 rounded-lg ${active ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border'}`;
+        b.className = `ftype-btn px-2.5 py-1 rounded-lg ${active ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border'} text-xs font-bold`;
       });
       renderBasket();
     };
@@ -1367,14 +1483,11 @@
 
     function renderBasket() {
       const dayCount = getTripDaysCount();
-
       const prefSel = document.getElementById("itemPrefDay");
       if (prefSel) {
         const prevVal = prefSel.value;
         let optHtml = `<option value="0">희망일차 미정</option>`;
-        for (let i = 1; i <= dayCount; i++) {
-          optHtml += `<option value="${i}">${formatDayLabel(i)}</option>`;
-        }
+        for (let i = 1; i <= dayCount; i++) optHtml += `<option value="${i}">${formatDayLabel(i)}</option>`;
         prefSel.innerHTML = optHtml;
         if (prevVal) prefSel.value = prevVal;
       }
@@ -1391,11 +1504,9 @@
 
       const pItems = basketItems.filter(i => i.owner === selectedMemberTab);
       const pBox = document.getElementById("personalList");
-      if (pItems.length === 0) {
-        pBox.innerHTML = `<div class="text-center text-gray-400 text-xs py-8 bg-white rounded-2xl">${selectedMemberTab}의 바구니가 비어 있어요.<br>지도에서 추천받거나 위에서 직접 추가해 보세요!</div>`;
-      } else {
-        pBox.innerHTML = pItems.map(item => renderBasketCard(item, false, dayCount)).join("");
-      }
+      pBox.innerHTML = pItems.length === 0
+        ? `<div class="text-center text-gray-400 text-xs py-8 bg-white rounded-2xl">${selectedMemberTab}의 바구니가 비어 있어요.<br>지도에서 추천받거나 위에서 직접 추가해 보세요!</div>`
+        : pItems.map(item => renderBasketCard(item, false, dayCount)).join("");
 
       const d = masterConfig.days || {};
       let dayHtml = `<button onclick="setFamilyDay(0)" class="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${familyDayFilter === 0 ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border'}">전체</button>`;
@@ -1409,11 +1520,9 @@
       if (familyTypeFilter !== "all") fItems = fItems.filter(i => i.itemType === familyTypeFilter);
 
       const fBox = document.getElementById("familyList");
-      if (fItems.length === 0) {
-        fBox.innerHTML = `<div class="text-center text-gray-400 text-xs py-8 bg-white rounded-2xl">조건에 맞는 통합 바구니 항목이 없습니다.<br>개인 바구니에서 [🌟 가족 확정]을 눌러 담아보세요!</div>`;
-      } else {
-        fBox.innerHTML = fItems.map(item => renderBasketCard(item, true, dayCount)).join("");
-      }
+      fBox.innerHTML = fItems.length === 0
+        ? `<div class="text-center text-gray-400 text-xs py-8 bg-white rounded-2xl">조건에 맞는 통합 바구니 항목이 없습니다.<br>개인 바구니에서 [🌟 가족확정]을 눌러 담아보세요!</div>`
+        : fItems.map(item => renderBasketCard(item, true, dayCount)).join("");
     }
 
     function renderBasketCard(item, isFamilyView, dayCount) {
@@ -1433,9 +1542,7 @@
       }
 
       let dayOptions = "";
-      for (let i = 1; i <= dayCount; i++) {
-        dayOptions += `<option value="${i}" ${item.assignedDay === i ? 'selected' : ''}>${i}일차</option>`;
-      }
+      for (let i = 1; i <= dayCount; i++) dayOptions += `<option value="${i}" ${item.assignedDay === i ? 'selected' : ''}>${i}일차</option>`;
 
       return `
         <div class="bg-white p-3.5 rounded-2xl shadow-sm border ${item.inFamilyBasket ? 'border-amber-300' : 'border-gray-100'} space-y-2">
@@ -1448,37 +1555,27 @@
             </div>
             <button onclick="deleteBasketItem('${item.id}')" class="text-[11px] text-gray-300 hover:text-red-500">삭제</button>
           </div>
-
           <div>
             <h4 class="font-bold text-sm text-gray-900">${item.title}</h4>
             ${item.memo ? `<p class="text-xs text-gray-500 mt-0.5">${item.memo}</p>` : ''}
           </div>
-
           <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-gray-50">
             <button onclick="toggleVote('${item.id}', ${hasVoted})" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${hasVoted ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}">
               <span>👍</span><span>${likes.length}</span>
               <span class="text-[10px] opacity-80">${likes.join(',')}</span>
             </button>
-
             <div class="flex items-center gap-1.5">
               <a href="${searchUrl}" target="_blank" class="text-[11px] bg-gray-100 text-gray-700 px-2 py-1 rounded-lg font-semibold">🔍 검색</a>
               ${!isFamilyView && !item.inFamilyBasket ? `
-                <select id="promote-day-${item.id}" class="bg-amber-50 border border-amber-200 text-[11px] font-bold rounded-lg px-1.5 py-1">
-                  ${dayOptions}
-                </select>
-                <button onclick="promoteToFamily('${item.id}')" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 text-[11px] font-extrabold px-2.5 py-1 rounded-lg">
-                  🌟 가족확정
-                </button>
+                <select id="promote-day-${item.id}" class="bg-amber-50 border border-amber-200 text-[11px] font-bold rounded-lg px-1.5 py-1">${dayOptions}</select>
+                <button onclick="promoteToFamily('${item.id}')" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 text-[11px] font-extrabold px-2.5 py-1 rounded-lg">🌟 가족확정</button>
               ` : ''}
               ${isFamilyView ? `
-                <select onchange="updateFamilyItemDay('${item.id}', this.value)" class="bg-indigo-50 text-indigo-700 text-[11px] font-bold rounded-lg px-2 py-1">
-                  ${dayOptions}
-                </select>
+                <select onchange="updateFamilyItemDay('${item.id}', this.value)" class="bg-indigo-50 text-indigo-700 text-[11px] font-bold rounded-lg px-2 py-1">${dayOptions}</select>
                 <button onclick="removeFromFamily('${item.id}')" class="text-[10px] text-gray-400 underline">제외</button>
               ` : ''}
             </div>
           </div>
-
           <div class="bg-gray-50 rounded-xl p-2 space-y-1">
             ${comments.map(c => `<div class="text-[11px]"><b class="text-gray-700">${c.author}:</b> <span class="text-gray-600">${c.text}</span></div>`).join("")}
             <div class="flex gap-1 pt-0.5">
@@ -1490,7 +1587,7 @@
       `;
     }
 
-    // --- 4. 개인화 지도 탐색 ---
+    // --- 4. 개인화 + 상황별 지도 탐색 (확장 92곳 DB 중 최적 TOP 8 선별) ---
     function initExploreMap() {
       if (exploreMap) return;
       exploreMap = L.map("exploreMap").setView([34.6687, 135.5013], 13);
@@ -1517,6 +1614,15 @@
       renderMapRecommendations();
     };
 
+    window.setMapSituation = (sit) => {
+      mapSituation = sit;
+      document.querySelectorAll(".msit-btn").forEach(b => {
+        const active = b.dataset.sit === sit;
+        b.className = `msit-btn px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 ${active ? 'bg-slate-800 text-white' : 'bg-gray-100 text-gray-600'}`;
+      });
+      renderMapRecommendations();
+    };
+
     function calcDistKm(lat1, lng1, lat2, lng2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1526,14 +1632,23 @@
     }
 
     function renderMapRecommendations() {
+      const dbBadge = document.getElementById("dbCountBadge");
+      if (dbBadge) dbBadge.innerText = `DB ${KANSAI_CATALOG.length}곳`;
+
       if (!exploreMap) return;
       const center = exploreMap.getCenter();
       const bounds = exploreMap.getBounds();
       const member = MEMBERS.find(m => m.name === currentUser) || MEMBERS[0];
 
+      // 1단계: 테마 & 상황 조건에 맞는 후보 필터링
       const filteredCatalog = KANSAI_CATALOG.map((spot, idx) => ({ ...spot, idx }))
-        .filter(spot => mapTheme === "persona" || spot.theme === mapTheme);
+        .filter(spot => {
+          const themeOk = (mapTheme === "persona" || spot.theme === mapTheme);
+          const sitOk = (mapSituation === "all" || (Array.isArray(spot.tags) && spot.tags.includes(mapSituation)));
+          return themeOk && sitOk;
+        });
 
+      // 지도 위 핀 갱신
       if (exploreMarkerLayer) {
         exploreMarkerLayer.clearLayers();
         exploreMarkersByIdx = {};
@@ -1553,7 +1668,7 @@
 
           const marker = L.marker([spot.lat, spot.lng], { icon }).addTo(exploreMarkerLayer);
           marker.bindPopup(`
-            <div style="min-width:180px;">
+            <div style="min-width:185px;">
               <div style="font-size:10px;font-weight:bold;color:${style.bg};">[${spot.city} 인기 ${spot.rank}위] ${style.emoji} ${style.label}</div>
               <div style="font-weight:bold;font-size:13px;margin:2px 0;">${spot.name}</div>
               <div style="font-size:11px;color:#555;margin-bottom:6px;">${spot.storeFeature}</div>
@@ -1566,12 +1681,13 @@
         });
       }
 
+      // 2단계: 지도 시야·거리·인기순위·페르소나 가중치 종합 스코어링 후 상위 8개만 추출
       const scored = filteredCatalog.map(spot => {
         const dist = calcDistKm(center.lat, center.lng, spot.lat, spot.lng);
         const inView = bounds.contains([spot.lat, spot.lng]);
         const regionTier = inView ? 0 : (dist <= 15 ? 1 : 2);
-        const personaBonus = (mapTheme === "persona" && spot.theme === member.persona) ? -2.5 : 0;
-        const priorityScore = (regionTier * 100) + (spot.rank * 1.5) + (dist * 0.4) + personaBonus;
+        const personaBonus = (mapTheme === "persona" && spot.theme === member.persona) ? -3.0 : 0;
+        const priorityScore = (regionTier * 100) + (spot.rank * 1.4) + (dist * 0.45) + personaBonus;
         return { ...spot, dist, inView, priorityScore };
       }).sort((a, b) => a.priorityScore - b.priorityScore);
 
@@ -1579,29 +1695,39 @@
       const primaryArea = scored[0] ? scored[0].area : "오사카 · 난바";
       document.getElementById("mapAreaBadge").innerText = `${primaryArea} 중심`;
 
-      const minCount = Math.min(8, Math.max(6, scored.length));
-      const topList = scored.slice(0, minCount);
+      const displayLimit = Math.min(8, scored.length);
+      const topList = scored.slice(0, displayLimit);
 
       const guideEl = document.getElementById("mapGuideText");
       if (guideEl) {
         const themeName = mapTheme === "persona" ? `${member.name} 취향` : THEME_PIN_STYLE[mapTheme].label;
-        guideEl.innerHTML = `📍 <b>${primaryCity}</b> 주변 한국인 인기순(${themeName}) <b>${topList.length}곳</b> 추천 중!`;
+        const sitName = mapSituation === "all" ? "" : ` · ${SITUATION_LABELS[mapSituation]}`;
+        guideEl.innerHTML = `📍 전체 DB <b>${KANSAI_CATALOG.length}곳</b> 중 <b>${primaryCity}</b> 주변(${themeName}${sitName}) 맞춤 <b>TOP ${topList.length}</b> 추천!`;
+      }
+
+      if (topList.length === 0) {
+        document.getElementById("mapSpotCards").innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-xs text-gray-400">선택한 테마와 상황 조건에 동시에 맞는 장소가 없습니다.<br>상단 필터를 [전체]로 변경해 보세요!</div>`;
+        return;
       }
 
       document.getElementById("mapSpotCards").innerHTML = topList.map((spot, orderIdx) => {
         const distStr = spot.dist < 1 ? `${Math.round(spot.dist * 1000)}m` : `${spot.dist.toFixed(1)}km`;
         const isPersonaMatch = spot.theme === member.persona;
         const style = THEME_PIN_STYLE[spot.theme] || THEME_PIN_STYLE.spot;
+        const tags = spot.tags || [];
 
         return `
           <div class="bg-white p-3.5 rounded-2xl shadow-sm border ${isPersonaMatch ? 'border-indigo-200' : 'border-gray-100'} space-y-2">
             <div class="flex justify-between items-start gap-2">
               <div onclick="focusCatalogSpot(${spot.idx})" class="cursor-pointer">
-                <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+                <div class="flex flex-wrap items-center gap-1 mb-0.5">
                   <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-800 text-white">${spot.city}</span>
-                  <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">🔥 ${spot.city} 인기 ${spot.rank}위</span>
+                  <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">🔥 인기 ${spot.rank}위</span>
                   <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">${style.emoji} ${style.label}</span>
-                  ${isPersonaMatch ? `<span class="text-[10px] font-extrabold bg-indigo-600 text-white px-1.5 py-0.5 rounded">✨ ${member.name} 추천</span>` : ''}
+                  ${tags.includes('indoor') ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700">☔실내</span>` : ''}
+                  ${tags.includes('kids') ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">👦아이추천</span>` : ''}
+                  ${tags.includes('night') ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">🌃야간</span>` : ''}
+                  ${isPersonaMatch ? `<span class="text-[10px] font-extrabold bg-indigo-600 text-white px-1.5 py-0.5 rounded">✨ ${member.name}픽</span>` : ''}
                   <span class="text-[11px] text-gray-400">${distStr}</span>
                 </div>
                 <h4 class="font-bold text-sm text-gray-900">${orderIdx + 1}. ${spot.name}</h4>
@@ -1612,7 +1738,7 @@
             </div>
 
             <div class="bg-amber-50/80 text-amber-900 text-[11px] px-2.5 py-1.5 rounded-xl font-medium">
-              💡 <b>블로그 핵심 포인트:</b> ${spot.storeFeature}
+              💡 <b>핵심 포인트:</b> ${spot.storeFeature}
             </div>
 
             <div>
@@ -1682,7 +1808,7 @@
       alert(`✨ '${mItem.name}'을(를) ${currentUser}의 개인 바구니에 담았습니다!`);
     };
 
-    // --- 5. 스마트 자동 루트 생성 & 한국어 구글 지도 ---
+    // --- 5. 스마트 자동 루트 생성 ---
     function initRouteMap() {
       if (routeMap) return;
       routeMap = L.map("routeMap").setView([34.6687, 135.5013], 13);
@@ -1783,12 +1909,8 @@
     window.resetCurrentDayRoute = async () => {
       if (!db) return alert("Firebase 연결을 확인해 주세요!");
       const rDoc = routeDocs[`day_${currentRouteDay}`];
-      if (!rDoc || !rDoc.stops || rDoc.stops.length === 0) {
-        return alert("이미 초기화된 상태입니다.");
-      }
-      if (!confirm(`${formatDayLabel(currentRouteDay)}의 생성된 루트 일정을 모두 초기화할까요?\n(초기화 후 바구니 변경사항을 반영해 다시 그릴 수 있습니다.)`)) {
-        return;
-      }
+      if (!rDoc || !rDoc.stops || rDoc.stops.length === 0) return alert("이미 초기화된 상태입니다.");
+      if (!confirm(`${formatDayLabel(currentRouteDay)}의 생성된 루트 일정을 모두 초기화할까요?`)) return;
       await deleteDoc(doc(db, "routes", `day_${currentRouteDay}`));
     };
 
@@ -1828,11 +1950,6 @@
       }
       document.getElementById("routeDayTabs").innerHTML = tabsHtml;
       document.getElementById("routeDayGoalBadge").innerText = `${formatDayLabel(currentRouteDay)} (${d[currentRouteDay] || ''})`;
-
-      const activeDayBtn = document.getElementById(`rday-btn-${currentRouteDay}`);
-      if (activeDayBtn) {
-        activeDayBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }
 
       const rDoc = routeDocs[`day_${currentRouteDay}`];
       const hotel = HOTEL_AREAS[masterConfig.hotelArea || "namba"] || HOTEL_AREAS.namba;
@@ -1955,7 +2072,7 @@
       }
     }
 
-    // --- 6. 날짜·계절·기후 환경 맞춤 준비물 추천 & 체크리스트 ---
+    // --- 6. 계절·기후 맞춤 준비물 추천 & 체크리스트 ---
     function getSeasonalPackProfile() {
       const startStr = masterConfig.startDate || "2026-11-21";
       const d = new Date(startStr);
@@ -2024,10 +2141,7 @@
         { item: "상비약 (소화제, 진통제, 멀미약, 반창고)", owner: "예진", reason: "현지 식사·이동 컨디션 관리" }
       ];
 
-      return {
-        ...seasonInfo,
-        allRecommended: [...seasonInfo.items, ...essentialItems]
-      };
+      return { ...seasonInfo, allRecommended: [...seasonInfo.items, ...essentialItems] };
     }
 
     window.toggleSeasonRecList = () => {
@@ -2041,36 +2155,17 @@
       const profile = getSeasonalPackProfile();
       const target = profile.allRecommended[idx];
       if (!target) return;
-
-      const exists = packItems.some(p => p.type === "pack" && p.item === target.item);
-      if (exists) return alert("이미 준비물 체크리스트에 등록되어 있습니다!");
-
-      await addDoc(collection(db, "packlist"), {
-        type: "pack",
-        owner: target.owner,
-        item: target.item,
-        checked: false,
-        createdAt: Date.now()
-      });
+      if (packItems.some(p => p.type === "pack" && p.item === target.item)) return alert("이미 준비물 체크리스트에 등록되어 있습니다!");
+      await addDoc(collection(db, "packlist"), { type: "pack", owner: target.owner, item: target.item, checked: false, createdAt: Date.now() });
     };
 
     window.addAllRecommendedPacks = async () => {
       if (!db) return alert("Firebase 연결을 확인해 주세요!");
       const profile = getSeasonalPackProfile();
       const missing = profile.allRecommended.filter(rec => !packItems.some(p => p.type === "pack" && p.item === rec.item));
-
-      if (missing.length === 0) {
-        return alert("✅ 모든 계절·필수 추천 준비물이 이미 리스트에 등록되어 있습니다!");
-      }
-
+      if (missing.length === 0) return alert("✅ 모든 계절·필수 추천 준비물이 이미 리스트에 등록되어 있습니다!");
       for (const rec of missing) {
-        await addDoc(collection(db, "packlist"), {
-          type: "pack",
-          owner: rec.owner,
-          item: rec.item,
-          checked: false,
-          createdAt: Date.now()
-        });
+        await addDoc(collection(db, "packlist"), { type: "pack", owner: rec.owner, item: rec.item, checked: false, createdAt: Date.now() });
       }
       alert(`✨ 미등록 추천 준비물 ${missing.length}개가 체크리스트에 일괄 추가되었습니다!`);
     };
@@ -2107,13 +2202,9 @@
         if (isAdded) addedCount++;
 
         let statusActionHtml = "";
-        if (isChecked) {
-          statusActionHtml = `<span class="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-1 rounded-lg shrink-0">✅ 챙김완료</span>`;
-        } else if (isAdded) {
-          statusActionHtml = `<span class="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg shrink-0">📋 등록됨</span>`;
-        } else {
-          statusActionHtml = `<button onclick="addSingleRecommendedPack(${idx})" class="bg-white hover:bg-indigo-600 hover:text-white text-indigo-700 border border-indigo-200 text-[10px] font-extrabold px-2.5 py-1 rounded-lg shrink-0 transition">+ 담기</button>`;
-        }
+        if (isChecked) statusActionHtml = `<span class="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-1 rounded-lg shrink-0">✅ 챙김완료</span>`;
+        else if (isAdded) statusActionHtml = `<span class="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg shrink-0">📋 등록됨</span>`;
+        else statusActionHtml = `<button onclick="addSingleRecommendedPack(${idx})" class="bg-white hover:bg-indigo-600 hover:text-white text-indigo-700 border border-indigo-200 text-[10px] font-extrabold px-2.5 py-1 rounded-lg shrink-0 transition">+ 담기</button>`;
 
         return `
           <div class="bg-white/95 p-2.5 rounded-xl border ${isChecked ? 'border-emerald-200 bg-emerald-50/40' : 'border-indigo-100/80'} flex items-center justify-between gap-2">
@@ -2183,10 +2274,33 @@
       renderPackView();
     }
 
+    // --- 확장 카탈로그 DB Firestore 시드 및 실시간 동기화 ---
+    async function syncCatalogSpotsWithFirestore() {
+      if (!db) return;
+      onSnapshot(collection(db, "catalog_spots"), async (snap) => {
+        const existingMap = new Map(snap.docs.map(d => [d.id, d.data()]));
+
+        // 신규 스팟이 있거나 tags 필드가 누락된 기존 문서가 있으면 자동 업서트
+        for (const spot of DEFAULT_KANSAI_DB) {
+          const prev = existingMap.get(spot.id);
+          if (!prev || !Array.isArray(prev.tags)) {
+            await setDoc(doc(db, "catalog_spots", spot.id), spot);
+          }
+        }
+
+        if (snap.docs.length > 0) {
+          KANSAI_CATALOG = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          renderMapRecommendations();
+        }
+      });
+    }
+
     // --- Firebase 실시간 동기화 ---
     try {
       const app = initializeApp(firebaseConfig);
       db = getFirestore(app);
+
+      syncCatalogSpotsWithFirestore();
 
       onSnapshot(doc(db, "config", "master"), (snap) => {
         if (snap.exists()) masterConfig = { ...masterConfig, ...snap.data() };
