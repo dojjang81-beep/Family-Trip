@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>우리 가족 간사이 여행 플래너</title>
+  <title>우리 가족 간사이 여행</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -115,10 +115,7 @@
   <header class="sticky top-0 z-30 bg-indigo-950 text-white shadow-md">
     <div class="max-w-lg mx-auto px-4 py-2.5 flex items-center justify-between">
       <div>
-        <div class="flex items-center gap-1.5">
-          <h1 class="font-extrabold text-sm tracking-tight">🇯🇵 간사이 패밀리 플래너</h1>
-          <span id="dbCountBadge" class="text-[10px] bg-amber-400 text-indigo-950 font-extrabold px-1.5 py-0.5 rounded-full">DB 92곳</span>
-        </div>
+        <h1 class="font-extrabold text-sm tracking-tight">🇯🇵 우리 가족 간사이 여행</h1>
         <p id="briefingSummary" class="text-[11px] text-indigo-200 mt-0.5">📅 일정 불러오는 중...</p>
       </div>
       <div class="flex items-center gap-1.5">
@@ -145,7 +142,7 @@
   </header>
 
   <div id="dbStatus" class="hidden max-w-lg mx-auto bg-red-100 text-red-700 text-xs p-2 text-center font-bold">
-    ⚠️ Firebase 연결에 실패했습니다. 오프라인 기본 DB 모드로 동작합니다.
+    ⚠️ Firebase 연결에 실패했습니다. 기본 추천 데이터로 동작합니다.
   </div>
 
   <!-- 메인 콘텐츠 컨테이너 -->
@@ -169,7 +166,7 @@
         <span id="mapAreaBadge" class="absolute top-2.5 left-2.5 z-20 bg-slate-900/85 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">오사카 · 난바 중심</span>
       </div>
 
-      <!-- 1차 필터: 테마별 -->
+      <!-- 1차 필터(테마) & 2차 필터(상황) -->
       <div class="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <button onclick="setMapTheme('persona')" data-theme="persona" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 bg-indigo-600 text-white shadow-sm">✨ 내 취향맞춤</button>
@@ -179,7 +176,6 @@
           <button onclick="setMapTheme('cvs')" data-theme="cvs" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 bg-gray-100 text-gray-600">🏪 편의점</button>
         </div>
 
-        <!-- 2차 필터: 상황별 맞춤 (비오는날/아이취향/식사/야경) -->
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 border-t border-gray-100">
           <span class="text-[10px] font-extrabold text-gray-400 shrink-0">상황:</span>
           <button onclick="setMapSituation('all')" data-sit="all" class="msit-btn px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 bg-slate-800 text-white">전체</button>
@@ -196,7 +192,6 @@
 
     <!-- [TAB 2] 바구니 · 투표 -->
     <section id="tab-basket" class="hidden space-y-3">
-      <!-- 새 항목 추가 폼 -->
       <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2 relative">
         <div class="flex gap-1.5">
           <select id="itemType" onchange="onItemTypeChange()" class="bg-gray-100 rounded-xl px-2.5 py-2 text-xs font-bold text-gray-700">
@@ -207,7 +202,7 @@
           <select id="itemPrefDay" class="bg-gray-100 rounded-xl px-2.5 py-2 text-xs font-bold text-gray-700 flex-1"></select>
         </div>
         <div class="relative">
-          <input type="text" id="itemTitle" oninput="onBasketTitleInput()" placeholder="장소/맛집 이름 입력 (DB+지도 자동검색)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs" />
+          <input type="text" id="itemTitle" oninput="onBasketTitleInput()" placeholder="장소/맛집 이름 입력 (자동검색)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs" />
           <div id="titleAutoCompleteBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-indigo-200 rounded-xl shadow-lg z-30 divide-y divide-gray-100 max-h-56 overflow-y-auto"></div>
         </div>
         <div id="selectedLocIndicator" class="hidden flex items-center justify-between bg-emerald-50 text-emerald-800 text-[11px] px-2.5 py-1.5 rounded-lg font-bold">
@@ -220,19 +215,16 @@
         </div>
       </div>
 
-      <!-- 개인 / 통합 가족 바구니 전환 -->
       <div class="grid grid-cols-2 bg-gray-200/80 p-1 rounded-xl text-xs font-extrabold">
         <button id="btnModePersonal" onclick="setBasketMode('personal')" class="py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition">👤 개인별 바구니</button>
         <button id="btnModeFamily" onclick="setBasketMode('family')" class="py-2 rounded-lg text-gray-500 transition">🌟 통합 가족 바구니</button>
       </div>
 
-      <!-- 개인 바구니 뷰 -->
       <div id="viewPersonalBasket" class="space-y-2.5">
         <div id="memberBasketTabs" class="flex gap-1.5 overflow-x-auto no-scrollbar"></div>
         <div id="personalList" class="space-y-2.5"></div>
       </div>
 
-      <!-- 통합 가족 바구니 뷰 -->
       <div id="viewFamilyBasket" class="hidden space-y-2.5">
         <div id="familyDayFilter" class="flex gap-1.5 overflow-x-auto no-scrollbar"></div>
         <div class="flex gap-1.5">
@@ -249,7 +241,6 @@
     <section id="tab-route" class="hidden space-y-3">
       <div id="routeDayTabs" class="flex gap-1.5 overflow-x-auto no-scrollbar"></div>
 
-      <!-- 영수 전용 루트 생성 컨트롤 -->
       <div id="autoRouteGeneratorBox" class="hidden bg-indigo-50 border border-indigo-200 p-3 rounded-2xl space-y-2">
         <div class="flex justify-between items-center">
           <span class="text-xs font-extrabold text-indigo-950">🧭 스마트 동선 최적화</span>
@@ -270,7 +261,6 @@
         </button>
       </div>
 
-      <!-- 루트 상태 및 액션 바 -->
       <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap justify-between items-center gap-2">
         <div class="flex items-center gap-2">
           <span id="routeStatusBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600">미생성</span>
@@ -291,7 +281,6 @@
 
     <!-- [TAB 4] 준비물 · 쇼핑 · 환율 -->
     <section id="tab-pack" class="hidden space-y-3">
-      <!-- 실시간 엔화 환율 계산기 -->
       <div class="bg-gradient-to-r from-indigo-900 to-slate-800 text-white p-3.5 rounded-2xl shadow-sm space-y-2">
         <div class="flex justify-between items-center">
           <span id="fxRateLabel" class="text-xs font-extrabold text-amber-300">💴 100¥=905원</span>
@@ -304,7 +293,6 @@
         </div>
       </div>
 
-      <!-- 계절·날씨 맞춤 준비물 추천 카드 -->
       <div class="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-3.5 space-y-2.5">
         <div class="flex justify-between items-start gap-2">
           <div>
@@ -323,7 +311,6 @@
         <div id="seasonRecListBox" class="space-y-1.5 max-h-64 overflow-y-auto pr-0.5"></div>
       </div>
 
-      <!-- 준비물/쇼핑 직접 추가 -->
       <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 space-y-2">
         <div class="flex gap-1.5">
           <select id="packType" class="bg-gray-100 rounded-xl px-2 py-2 text-xs font-bold">
@@ -342,7 +329,6 @@
         </div>
       </div>
 
-      <!-- 등록된 공동 & 개인 준비물 체크리스트 -->
       <div>
         <div class="flex justify-between items-center mb-1.5 px-1">
           <h3 class="font-bold text-xs text-gray-600">🧳 우리 가족 준비물 체크리스트</h3>
@@ -351,7 +337,6 @@
         <div id="packListBox" class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100"></div>
       </div>
 
-      <!-- 쇼핑 위시리스트 -->
       <div>
         <div class="flex justify-between items-center mb-1.5 px-1">
           <h3 class="font-bold text-xs text-gray-600">🛍️ 쇼핑 위시리스트 (통합 바구니 '살것' 자동 연동)</h3>
@@ -386,7 +371,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, setDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, setDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD3HqLq8Hd1XW6Fv8srFeNJTOf25tvLBAg",
@@ -430,8 +415,7 @@
     };
 
     // =========================================================================
-    // [대용량 확장 DB] 간사이 4대 권역(오사카 40 · 교토 24 · 고베 16 · 나라 12 = 총 92곳)
-    // tags: indoor(실내쾌적), kids(중3·초6 추천), food(식사·간식), night(야경·저녁)
+    // [내장 확장 DB] 간사이 4대 권역(오사카 40 · 교토 24 · 고베 16 · 나라 12 = 92곳)
     // =========================================================================
     const DEFAULT_KANSAI_DB = [
       // ================= [오사카 40곳] =================
@@ -723,7 +707,7 @@
         mustItems: [{ name: "교토 규카츠 가쓰규 정식", type: "food" }]
       },
       {
-        id: "kyoto_18", city: "교토", rank: 18, name: "사카바야시/카츠쿠라 돈카츠 교토역점 (포르타)", theme: "spot", tags: ["food", "indoor"], area: "교토 · 교토역", lat: 34.9862, lng: 135.7585, stayMin: 60,
+        id: "kyoto_18", city: "교토", rank: 18, name: "카츠쿠라 돈카츠 교토역점 (포르타)", theme: "spot", tags: ["food", "indoor"], area: "교토 · 교토역", lat: 34.9862, lng: 135.7585, stayMin: 60,
         storeFeature: "교토역 지하상가 포르타 내 위치한 교토 3대 돈카츠 맛집! 직접 참깨를 갈아 먹는 재미",
         mustItems: [{ name: "카츠쿠라 히레카츠(안심 돈카츠) 정식", type: "food" }]
       },
@@ -825,7 +809,7 @@
         mustItems: [{ name: "이쿠타 신사 물점(미즈미쿠지) 체험", type: "place" }]
       },
       {
-        id: "kobe_14", city: "고베", rank: 14, name: "고베 유즈루하 신사 & 수마 시월드 (돌고래·범고래)", theme: "spot", tags: ["indoor", "kids"], area: "고베 · 서부(스마)", lat: 34.6438, lng: 135.1282, stayMin: 150,
+        id: "kobe_14", city: "고베", rank: 14, name: "고베 수마 시월드 (돌고래·범고래 아쿠아리움)", theme: "spot", tags: ["indoor", "kids"], area: "고베 · 서부(스마)", lat: 34.6438, lng: 135.1282, stayMin: 150,
         storeFeature: "서일본 유일의 범고래(오르카) 퍼포먼스를 볼 수 있는 초대형 바다 앞 아쿠아리움!",
         mustItems: [{ name: "오르카(범고래) 스타디움 쇼 관람", type: "place" }]
       },
@@ -903,7 +887,7 @@
       }
     ];
 
-    // 런타임 카탈로그 (기본 92개 DB로 초기화 후 Firestore 'catalog_spots'와 실시간 동기화)
+    // 런타임 카탈로그 (항상 내장 92곳을 기본으로 유지하며 Firestore 추가 데이터 병합)
     let KANSAI_CATALOG = [...DEFAULT_KANSAI_DB];
 
     let currentUser = localStorage.getItem("osaka_v3_user") || "";
@@ -1157,7 +1141,7 @@
       }
     };
 
-    // --- 3. 하이브리드 장소 검색 (확장 92곳 DB + Photon API) ---
+    // --- 3. 하이브리드 장소 검색 ---
     function detectKansaiCity(lat, lng, rawText = "") {
       if (rawText.includes("교토") || rawText.includes("Kyoto") || rawText.includes("京都") || lat > 34.92) return "교토";
       if (rawText.includes("고베") || rawText.includes("Kobe") || rawText.includes("神戸") || lng < 135.30) return "고베";
@@ -1186,7 +1170,7 @@
           lat: c.lat,
           lng: c.lng,
           stayMin: c.stayMin,
-          source: "추천DB"
+          source: "추천장소"
         }));
 
       let remoteMatches = [];
@@ -1230,7 +1214,7 @@
         inp.placeholder = "살 물건 이름 (예: 동전파스, 쿠루토가 샤프)";
         document.getElementById("titleAutoCompleteBox").classList.add("hidden");
       } else {
-        inp.placeholder = "장소/맛집 이름 입력 (DB+지도 자동검색)";
+        inp.placeholder = "장소/맛집 이름 입력 (자동검색)";
       }
     };
 
@@ -1251,7 +1235,7 @@
 
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(async () => {
-        box.innerHTML = `<div class="px-3 py-2 text-[11px] text-gray-400">🔍 '${text}' DB 및 지도 위치 검색 중...</div>`;
+        box.innerHTML = `<div class="px-3 py-2 text-[11px] text-gray-400">🔍 '${text}' 위치 검색 중...</div>`;
         box.classList.remove("hidden");
 
         autoCompleteCandidates = await searchKansaiPlaces(text);
@@ -1266,8 +1250,8 @@
               <div class="text-xs font-bold text-gray-800 truncate">${cand.name}</div>
               <div class="text-[10px] text-gray-500 truncate">${cand.address}</div>
             </div>
-            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded shrink-0 ${cand.source === '추천DB' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-700'}">
-              📍 ${cand.city} (${cand.source})
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded shrink-0 ${cand.source === '추천장소' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-700'}">
+              📍 ${cand.city}
             </span>
           </button>
         `).join("");
@@ -1319,7 +1303,7 @@
         box.innerHTML = `<div class="p-4 text-center text-xs text-gray-400">2글자 이상 입력해 주세요.</div>`;
         return;
       }
-      box.innerHTML = `<div class="p-4 text-center text-xs text-gray-400">🔍 간사이 DB 및 지도에서 '${q}' 찾는 중...</div>`;
+      box.innerHTML = `<div class="p-4 text-center text-xs text-gray-400">🔍 '${q}' 찾는 중...</div>`;
       locPickerCandidates = await searchKansaiPlaces(q);
 
       if (locPickerCandidates.length === 0) {
@@ -1587,7 +1571,7 @@
       `;
     }
 
-    // --- 4. 개인화 + 상황별 지도 탐색 (확장 92곳 DB 중 최적 TOP 8 선별) ---
+    // --- 4. 개인화 + 상황별 지도 탐색 ---
     function initExploreMap() {
       if (exploreMap) return;
       exploreMap = L.map("exploreMap").setView([34.6687, 135.5013], 13);
@@ -1632,15 +1616,11 @@
     }
 
     function renderMapRecommendations() {
-      const dbBadge = document.getElementById("dbCountBadge");
-      if (dbBadge) dbBadge.innerText = `DB ${KANSAI_CATALOG.length}곳`;
-
       if (!exploreMap) return;
       const center = exploreMap.getCenter();
       const bounds = exploreMap.getBounds();
       const member = MEMBERS.find(m => m.name === currentUser) || MEMBERS[0];
 
-      // 1단계: 테마 & 상황 조건에 맞는 후보 필터링
       const filteredCatalog = KANSAI_CATALOG.map((spot, idx) => ({ ...spot, idx }))
         .filter(spot => {
           const themeOk = (mapTheme === "persona" || spot.theme === mapTheme);
@@ -1648,7 +1628,6 @@
           return themeOk && sitOk;
         });
 
-      // 지도 위 핀 갱신
       if (exploreMarkerLayer) {
         exploreMarkerLayer.clearLayers();
         exploreMarkersByIdx = {};
@@ -1681,7 +1660,6 @@
         });
       }
 
-      // 2단계: 지도 시야·거리·인기순위·페르소나 가중치 종합 스코어링 후 상위 8개만 추출
       const scored = filteredCatalog.map(spot => {
         const dist = calcDistKm(center.lat, center.lng, spot.lat, spot.lng);
         const inView = bounds.contains([spot.lat, spot.lng]);
@@ -1702,7 +1680,7 @@
       if (guideEl) {
         const themeName = mapTheme === "persona" ? `${member.name} 취향` : THEME_PIN_STYLE[mapTheme].label;
         const sitName = mapSituation === "all" ? "" : ` · ${SITUATION_LABELS[mapSituation]}`;
-        guideEl.innerHTML = `📍 전체 DB <b>${KANSAI_CATALOG.length}곳</b> 중 <b>${primaryCity}</b> 주변(${themeName}${sitName}) 맞춤 <b>TOP ${topList.length}</b> 추천!`;
+        guideEl.innerHTML = `📍 <b>${primaryCity}</b> 주변 (${themeName}${sitName}) 맞춤 추천 <b>TOP ${topList.length}</b>`;
       }
 
       if (topList.length === 0) {
@@ -2274,24 +2252,43 @@
       renderPackView();
     }
 
-    // --- 확장 카탈로그 DB Firestore 시드 및 실시간 동기화 ---
-    async function syncCatalogSpotsWithFirestore() {
+    // --- 확장 카탈로그 DB Firestore 일괄 동기화 (writeBatch 사용으로 누락 방지) ---
+    let hasSeededCatalog = false;
+    function syncCatalogSpotsWithFirestore() {
       if (!db) return;
       onSnapshot(collection(db, "catalog_spots"), async (snap) => {
-        const existingMap = new Map(snap.docs.map(d => [d.id, d.data()]));
+        const remoteMap = new Map(snap.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
 
-        // 신규 스팟이 있거나 tags 필드가 누락된 기존 문서가 있으면 자동 업서트
-        for (const spot of DEFAULT_KANSAI_DB) {
-          const prev = existingMap.get(spot.id);
-          if (!prev || !Array.isArray(prev.tags)) {
-            await setDoc(doc(db, "catalog_spots", spot.id), spot);
+        // 1) 누락된 기본 스팟이나 tags가 없는 문서를 writeBatch로 한 번에 일괄 업서트
+        if (!hasSeededCatalog) {
+          hasSeededCatalog = true;
+          try {
+            const batch = writeBatch(db);
+            let needCommit = false;
+            for (const spot of DEFAULT_KANSAI_DB) {
+              const prev = remoteMap.get(spot.id);
+              if (!prev || !Array.isArray(prev.tags)) {
+                batch.set(doc(db, "catalog_spots", spot.id), spot);
+                needCommit = true;
+              }
+            }
+            if (needCommit) await batch.commit();
+          } catch (err) {
+            console.warn("Firestore catalog_spots 일괄 저장 건너뜀:", err);
           }
         }
 
-        if (snap.docs.length > 0) {
-          KANSAI_CATALOG = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          renderMapRecommendations();
-        }
+        // 2) 내장 92곳을 기본 베이스로 깔고 Firestore 데이터를 병합 (절대 1곳만 남지 않도록 보장)
+        const mergedMap = new Map(DEFAULT_KANSAI_DB.map(s => [s.id, s]));
+        remoteMap.forEach((val, key) => {
+          mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...val });
+        });
+        KANSAI_CATALOG = Array.from(mergedMap.values());
+        renderMapRecommendations();
+      }, (err) => {
+        console.warn("catalog_spots 구독 오류 (내장 DB 사용):", err);
+        KANSAI_CATALOG = [...DEFAULT_KANSAI_DB];
+        renderMapRecommendations();
       });
     }
 
