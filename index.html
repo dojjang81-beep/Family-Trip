@@ -13,6 +13,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     #exploreMap { height: 290px; width: 100%; border-radius: 1rem; z-index: 10; }
     #routeMap { height: 250px; width: 100%; border-radius: 1rem; z-index: 10; }
+    .custom-pin-wrapper { background: transparent; border: none; }
   </style>
 </head>
 <body class="text-gray-800 pb-24">
@@ -35,7 +36,6 @@
         <button onclick="closeMasterModal()" class="text-gray-400 hover:text-gray-600 text-sm font-bold">닫기 ✕</button>
       </div>
 
-      <!-- 여행 날짜 달력 선택 -->
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">📅 출발일 선택</label>
@@ -47,7 +47,6 @@
         </div>
       </div>
 
-      <!-- 비행편 및 시간 텍스트 입력 -->
       <div>
         <label class="block text-xs font-bold text-gray-600 mb-1">✈️ 비행편 및 시간</label>
         <input type="text" id="cfgFlight" placeholder="예: 출국 OZ112 (09:00) / 귀국 OZ115 (19:30)" class="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs" />
@@ -104,7 +103,7 @@
         </div>
       </div>
 
-      <!-- 최상단 고정 여행 브리핑 카드 (접기/펼치기) -->
+      <!-- 최상단 고정 여행 브리핑 카드 -->
       <div onclick="toggleBriefing()" class="bg-indigo-800/70 rounded-xl px-3 py-2 text-xs cursor-pointer border border-indigo-500/40">
         <div class="flex justify-between items-center">
           <div class="truncate pr-2 font-medium" id="briefingSummary">📅 여행 일정을 설정해 주세요</div>
@@ -146,7 +145,7 @@
           <span id="mapAreaBadge" class="text-[11px] font-bold text-gray-500">난바 · 도톤보리</span>
         </div>
 
-        <!-- 테마 필터 -->
+        <!-- 테마 필터 (클릭 시 지도 핀 즉시 필터링) -->
         <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1" id="mapThemeFilters">
           <button onclick="setMapTheme('persona')" data-theme="persona" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shrink-0">✨ 내 취향맞춤</button>
           <button onclick="setMapTheme('goods')" data-theme="goods" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 shrink-0">🧸 문구·캐릭터</button>
@@ -166,7 +165,7 @@
         </div>
 
         <div id="exploreMap"></div>
-        <p class="text-[11px] text-gray-400 text-center">👆 지도를 움직이면 주변 매장 특징과 브랜드별 필수 추천템이 자동 갱신됩니다!</p>
+        <p class="text-[11px] text-gray-400 text-center" id="mapGuideText">👆 위 테마 버튼을 누르면 해당 장소들이 지도에 핀으로 표시됩니다!</p>
       </div>
 
       <div id="mapSpotCards" class="space-y-3"></div>
@@ -312,7 +311,7 @@
     </section>
   </main>
 
-  <!-- 하단 4탭 내비게이션 (첫 화면: 맞춤지도·상점) -->
+  <!-- 하단 4탭 내비게이션 -->
   <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30">
     <div class="max-w-lg mx-auto grid grid-cols-4 text-center text-[11px] font-medium">
       <button onclick="switchTab('map')" id="nav-map" class="py-2 flex flex-col items-center gap-0.5 text-indigo-600 font-bold">
@@ -339,7 +338,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, addDoc, setDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // 적용 완료된 Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyD3HqLq8Hd1XW6Fv8srFeNJTOf25tvLBAg",
       authDomain: "family-trip-ff664.firebaseapp.com",
@@ -355,6 +353,13 @@
       { name: "연우", role: "중3 · 문구/캐릭터", emoji: "🧑", color: "bg-emerald-100 text-emerald-700", persona: "goods" },
       { name: "정우", role: "초6 · 문구/캐릭터", emoji: "🧒", color: "bg-amber-100 text-amber-700", persona: "goods" }
     ];
+
+    const THEME_PIN_STYLE = {
+      goods: { emoji: "🧸", bg: "#10b981", label: "문구·캐릭터" },
+      value: { emoji: "🛍️", bg: "#e11d48", label: "가성비·드럭" },
+      cvs:   { emoji: "🏪", bg: "#f59e0b", label: "편의점" },
+      spot:  { emoji: "🎢", bg: "#2563eb", label: "명소·맛집" }
+    };
 
     const HOTEL_AREAS = {
       namba: { name: "난바 · 도톤보리 숙소", lat: 34.6665, lng: 135.5015 },
@@ -540,11 +545,11 @@
     let packItems = [];
 
     let exploreMap = null;
-    let exploreMarkers = [];
+    let exploreMarkerLayer = null;
+    let exploreMarkersByIdx = {};
     let routeMap = null;
     let routeLayerGroup = null;
 
-    // 날짜 계산 유틸리티
     function getTripDaysCount() {
       if (!masterConfig.startDate || !masterConfig.endDate) return 4;
       const s = new Date(masterConfig.startDate);
@@ -696,7 +701,6 @@
       document.getElementById("krwOutput").innerText = Math.round(jpy * 9.05).toLocaleString() + " 원";
     };
 
-    // 탭 전환
     window.switchTab = (tab) => {
       ["map", "basket", "route", "pack"].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add("hidden");
@@ -711,7 +715,7 @@
 
       if (tab === "map") {
         initExploreMap();
-        setTimeout(() => exploreMap && exploreMap.invalidateSize(), 100);
+        setTimeout(() => { if (exploreMap) { exploreMap.invalidateSize(); renderMapRecommendations(); } }, 100);
       } else if (tab === "route") {
         initRouteMap();
         setTimeout(() => { routeMap && routeMap.invalidateSize(); renderRouteView(); }, 100);
@@ -830,7 +834,6 @@
     function renderBasket() {
       const dayCount = getTripDaysCount();
 
-      // 희망 일차 드롭다운 갱신
       const prefSel = document.getElementById("itemPrefDay");
       if (prefSel) {
         let optHtml = `<option value="0">희망일차 미정</option>`;
@@ -941,22 +944,18 @@
       `;
     }
 
-    // --- 4. 개인화 지도 탐색 (한국어 구글 지도 적용) ---
+    // --- 4. 개인화 지도 탐색 & 테마별 핀 동적 필터링 ---
     function initExploreMap() {
       if (exploreMap) return;
-      exploreMap = L.map("exploreMap").setView([34.6687, 135.5013], 15);
+      exploreMap = L.map("exploreMap").setView([34.6687, 135.5013], 14);
       L.tileLayer("https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}", {
         attribution: "© Google Maps", maxZoom: 20
       }).addTo(exploreMap);
 
-      OSAKA_CATALOG.forEach((spot, idx) => {
-        const marker = L.marker([spot.lat, spot.lng]).addTo(exploreMap);
-        marker.bindPopup(`<b>${spot.name}</b><br><span style="font-size:11px;color:#555;">${spot.storeFeature}</span>`);
-        exploreMarkers.push(marker);
-      });
+      exploreMarkerLayer = L.layerGroup().addTo(exploreMap);
 
-      exploreMap.on("moveend", renderMapRecommendations);
-      renderMapRecommendations();
+      exploreMap.on("moveend", () => renderMapRecommendations(false));
+      renderMapRecommendations(false);
     }
 
     window.flyToArea = (lat, lng) => {
@@ -968,9 +967,9 @@
       mapTheme = theme;
       document.querySelectorAll(".mtheme-btn").forEach(b => {
         const active = b.dataset.theme === theme;
-        b.className = `mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${active ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`;
+        b.className = `mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600'}`;
       });
-      renderMapRecommendations();
+      renderMapRecommendations(true);
     };
 
     function calcDistKm(lat1, lng1, lat2, lng2) {
@@ -981,30 +980,89 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    function renderMapRecommendations() {
+    function renderMapRecommendations(shouldAutoFit = false) {
       if (!exploreMap) return;
       const center = exploreMap.getCenter();
       const member = MEMBERS.find(m => m.name === currentUser) || MEMBERS[0];
-      const effectiveTheme = mapTheme === "persona" ? member.persona : mapTheme;
 
-      const sorted = OSAKA_CATALOG.map((spot, idx) => {
+      // 특정 테마(goods, value, cvs, spot)를 누르면 해당 장소들만 필터링하여 지도에 핀 표시
+      // 'persona'(내 취향맞춤)일 때는 전체 장소를 표시하되 본인 취향 핀을 별표 강조 표시
+      const filteredCatalog = OSAKA_CATALOG.map((spot, idx) => ({ ...spot, idx }))
+        .filter(spot => mapTheme === "persona" || spot.theme === mapTheme);
+
+      // 지도 위 핀 갱신
+      if (exploreMarkerLayer) {
+        exploreMarkerLayer.clearLayers();
+        exploreMarkersByIdx = {};
+        const visibleCoords = [];
+
+        filteredCatalog.forEach(spot => {
+          const style = THEME_PIN_STYLE[spot.theme] || THEME_PIN_STYLE.spot;
+          const isPersonaHighlight = (mapTheme === "persona" && spot.theme === member.persona);
+          const scale = (mapTheme !== "persona" || isPersonaHighlight) ? "transform:scale(1.1);" : "opacity:0.82;";
+          const ring = isPersonaHighlight ? "box-shadow:0 0 0 3px #facc15, 0 3px 6px rgba(0,0,0,0.35);" : "box-shadow:0 2px 5px rgba(0,0,0,0.3);";
+
+          const icon = L.divIcon({
+            className: "custom-pin-wrapper",
+            html: `<div style="background:${style.bg};color:white;width:30px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid white;${ring}${scale}">${style.emoji}</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+          });
+
+          const marker = L.marker([spot.lat, spot.lng], { icon }).addTo(exploreMarkerLayer);
+          marker.bindPopup(`
+            <div style="min-width:170px;">
+              <div style="font-size:10px;font-weight:bold;color:${style.bg};">${style.emoji} ${style.label}</div>
+              <div style="font-weight:bold;font-size:13px;margin:2px 0;">${spot.name}</div>
+              <div style="font-size:11px;color:#555;margin-bottom:6px;">${spot.storeFeature}</div>
+              <button onclick="addCatalogPlace(${spot.idx})" style="width:100%;background:#4f46e5;color:white;border:none;padding:5px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;">
+                + 내 바구니에 장소담기
+              </button>
+            </div>
+          `);
+          exploreMarkersByIdx[spot.idx] = marker;
+          visibleCoords.push([spot.lat, spot.lng]);
+        });
+
+        // 테마 버튼을 직접 클릭했을 때 해당 핀들이 한눈에 보이도록 지도 범위 자동 조정
+        if (shouldAutoFit && visibleCoords.length > 0) {
+          const bounds = L.latLngBounds(visibleCoords);
+          exploreMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
+        }
+      }
+
+      // 안내 문구 업데이트
+      const guideEl = document.getElementById("mapGuideText");
+      if (guideEl) {
+        if (mapTheme === "persona") {
+          guideEl.innerHTML = `✨ 현재 <b>${member.name}</b> 취향 핀이 노란 테두리로 강조되어 있습니다!`;
+        } else {
+          const tInfo = THEME_PIN_STYLE[mapTheme];
+          guideEl.innerHTML = `${tInfo.emoji} 지도에 <b>${tInfo.label}</b> 추천 장소 <b>${filteredCatalog.length}곳</b>의 핀이 표시되었습니다!`;
+        }
+      }
+
+      // 하단 추천 카드 정렬 (거리순 + 취향 우선)
+      const sorted = filteredCatalog.map(spot => {
         const dist = calcDistKm(center.lat, center.lng, spot.lat, spot.lng);
-        const themeBonus = spot.theme === effectiveTheme ? -1.8 : 0;
-        return { ...spot, idx, dist, score: dist + themeBonus };
+        const themeBonus = (mapTheme === "persona" && spot.theme === member.persona) ? -1.8 : 0;
+        return { ...spot, dist, score: dist + themeBonus };
       }).sort((a, b) => a.score - b.score);
 
       if (sorted[0]) document.getElementById("mapAreaBadge").innerText = `${sorted[0].area} 주변`;
 
-      const topList = sorted.slice(0, 6);
+      const topList = sorted.slice(0, 8);
       document.getElementById("mapSpotCards").innerHTML = topList.map(spot => {
         const distStr = spot.dist < 1 ? `${Math.round(spot.dist * 1000)}m` : `${spot.dist.toFixed(1)}km`;
         const isPersonaMatch = spot.theme === member.persona;
+        const style = THEME_PIN_STYLE[spot.theme] || THEME_PIN_STYLE.spot;
 
         return `
           <div class="bg-white p-3.5 rounded-2xl shadow-sm border ${isPersonaMatch ? 'border-indigo-200' : 'border-gray-100'} space-y-2">
             <div class="flex justify-between items-start gap-2">
-              <div onclick="exploreMap.flyTo([${spot.lat}, ${spot.lng}], 16); exploreMarkers[${spot.idx}].openPopup();" class="cursor-pointer">
+              <div onclick="focusCatalogSpot(${spot.idx})" class="cursor-pointer">
                 <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">${style.emoji} ${style.label}</span>
                   ${isPersonaMatch ? `<span class="text-[10px] font-extrabold bg-indigo-600 text-white px-1.5 py-0.5 rounded">✨ ${member.name} 추천</span>` : ''}
                   <span class="text-[11px] text-gray-400">중심에서 ${distStr}</span>
                 </div>
@@ -1033,6 +1091,15 @@
         `;
       }).join("");
     }
+
+    window.focusCatalogSpot = (idx) => {
+      const spot = OSAKA_CATALOG[idx];
+      if (!spot || !exploreMap) return;
+      exploreMap.flyTo([spot.lat, spot.lng], 16, { duration: 0.6 });
+      setTimeout(() => {
+        if (exploreMarkersByIdx[idx]) exploreMarkersByIdx[idx].openPopup();
+      }, 650);
+    };
 
     window.addCatalogPlace = async (idx) => {
       if (!db) return alert("Firebase 연결을 확인해 주세요!");
@@ -1305,7 +1372,7 @@
         L.marker([hotel.lat, hotel.lng]).addTo(routeLayerGroup).bindPopup(`🏨 숙소: ${masterConfig.hotel}`);
         rDoc.stops.forEach((s, idx) => {
           const icon = L.divIcon({
-            className: "custom-num-pin",
+            className: "custom-pin-wrapper",
             html: `<div style="background:#4f46e5;color:white;width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);">${idx + 1}</div>`,
             iconSize: [24, 24]
           });
@@ -1379,7 +1446,7 @@
     function renderAll() {
       renderBriefing();
       renderBasket();
-      renderMapRecommendations();
+      renderMapRecommendations(false);
       renderRouteView();
       renderPackView();
     }
