@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>우리 가족 간사이 여행</title>
+  <title>우리 가족 오사카 여행</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -115,7 +115,7 @@
   <header class="sticky top-0 z-30 bg-indigo-950 text-white shadow-md">
     <div class="max-w-lg mx-auto px-4 py-2.5 flex items-center justify-between">
       <div>
-        <h1 class="font-extrabold text-sm tracking-tight">🇯🇵 우리 가족 간사이 여행</h1>
+        <h1 class="font-extrabold text-sm tracking-tight">🇯🇵 우리 가족 오사카 여행</h1>
         <p id="briefingSummary" class="text-[11px] text-indigo-200 mt-0.5">📅 일정 불러오는 중...</p>
       </div>
       <div class="flex items-center gap-1.5">
@@ -344,26 +344,238 @@
         <div id="shopListBox" class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100"></div>
       </div>
     </section>
+
+    <!-- [TAB 5] 비주얼 사용 가이드 매뉴얼 -->
+    <section id="tab-guide" class="hidden space-y-3.5 pb-4">
+      <!-- 히어로 안내 카드 -->
+      <div class="bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 text-white p-4 rounded-3xl shadow-md space-y-2">
+        <div class="inline-flex items-center gap-1.5 bg-white/15 px-2.5 py-1 rounded-full text-[11px] font-bold text-amber-300">
+          <span>📖 가족 공용 사용 설명서</span>
+        </div>
+        <h2 class="text-base font-extrabold leading-snug">우리 가족 오사카 여행 플래너<br/>1분 만에 마스터하기!</h2>
+        <p class="text-xs text-indigo-100 leading-relaxed">
+          각자 가고 싶은 곳과 살 물건을 담고 <b>👍 좋아요 투표</b>를 하면, 아빠가 <b>최적 동선 루트</b>를 한 번에 그려주는 실시간 공유 앱입니다.
+        </p>
+        <!-- 4단계 한눈에 보기 Flow 다이어그램 -->
+        <div class="pt-2">
+          <svg viewBox="0 0 360 66" class="w-full h-auto">
+            <rect x="2" y="8" width="76" height="50" rx="12" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+            <text x="40" y="30" text-anchor="middle" font-size="14">👤</text>
+            <text x="40" y="47" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="bold">1. 이름선택</text>
+
+            <path d="M82 33 L94 33" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="94,29 100,33 94,37" fill="#fbbf24"/>
+
+            <rect x="102" y="8" width="76" height="50" rx="12" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+            <text x="140" y="30" text-anchor="middle" font-size="14">🗺️</text>
+            <text x="140" y="47" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="bold">2. 바구니담기</text>
+
+            <path d="M182 33 L194 33" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="194,29 200,33 194,37" fill="#fbbf24"/>
+
+            <rect x="202" y="8" width="76" height="50" rx="12" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)"/>
+            <text x="240" y="30" text-anchor="middle" font-size="14">🌟</text>
+            <text x="240" y="47" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="bold">3. 투표·확정</text>
+
+            <path d="M282 33 L294 33" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="294,29 300,33 294,37" fill="#fbbf24"/>
+
+            <rect x="302" y="8" width="56" height="50" rx="12" fill="#f59e0b"/>
+            <text x="330" y="30" text-anchor="middle" font-size="14">🧭</text>
+            <text x="330" y="47" text-anchor="middle" fill="#1e1b4b" font-size="9.5" font-weight="bold">4. 자동루트</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- STEP 1 카드 -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="bg-indigo-100 text-indigo-700 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">STEP 1 · 시작하기</span>
+          <button onclick="openProfileModal()" class="text-[11px] font-bold text-indigo-600 underline">지금 이름 바꾸기 →</button>
+        </div>
+        <h3 class="font-extrabold text-sm text-gray-900">👤 내 이름(프로필)을 먼저 선택하세요</h3>
+        <p class="text-xs text-gray-600 leading-relaxed">
+          우측 상단 <b>[👤 이름 변경]</b> 버튼을 눌러 본인을 선택하면, 내 취향에 딱 맞는 추천 장소가 먼저 뜹니다.
+        </p>
+        <!-- STEP 1 시각 목업 SVG -->
+        <div class="bg-slate-50 rounded-2xl p-2.5 border border-slate-200/80">
+          <svg viewBox="0 0 340 94" class="w-full h-auto">
+            <rect x="4" y="6" width="76" height="82" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="42" y="34" text-anchor="middle" font-size="20">👨</text>
+            <text x="42" y="54" text-anchor="middle" fill="#1e3a8a" font-size="11" font-weight="bold">영수</text>
+            <text x="42" y="70" text-anchor="middle" fill="#3b82f6" font-size="8.5" font-weight="bold">명소·총괄</text>
+
+            <rect x="89" y="6" width="76" height="82" rx="12" fill="#fff1f2" stroke="#f43f5e" stroke-width="1.5"/>
+            <text x="127" y="34" text-anchor="middle" font-size="20">👩</text>
+            <text x="127" y="54" text-anchor="middle" fill="#881337" font-size="11" font-weight="bold">예진</text>
+            <text x="127" y="70" text-anchor="middle" fill="#e11d48" font-size="8.5" font-weight="bold">가성비·드럭</text>
+
+            <rect x="174" y="6" width="76" height="82" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+            <text x="212" y="34" text-anchor="middle" font-size="20">🧑</text>
+            <text x="212" y="54" text-anchor="middle" fill="#064e3b" font-size="11" font-weight="bold">연우</text>
+            <text x="212" y="70" text-anchor="middle" fill="#059669" font-size="8.5" font-weight="bold">문구·캐릭터</text>
+
+            <rect x="259" y="6" width="76" height="82" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="297" y="34" text-anchor="middle" font-size="20">🧒</text>
+            <text x="297" y="54" text-anchor="middle" fill="#78350f" font-size="11" font-weight="bold">정우</text>
+            <text x="297" y="70" text-anchor="middle" fill="#d97706" font-size="8.5" font-weight="bold">문구·캐릭터</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- STEP 2 카드 -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">STEP 2 · 맞춤지도·상점 탭</span>
+          <button onclick="switchTab('map')" class="text-[11px] font-bold text-indigo-600 underline">지도 탭 열기 →</button>
+        </div>
+        <h3 class="font-extrabold text-sm text-gray-900">🗺️ 지도 움직이고 원터치로 내 바구니에 쏙!</h3>
+        <ul class="text-xs text-gray-600 space-y-1 list-disc pl-4">
+          <li><b>권역 버튼</b>(난바, 우메다, USJ, 교토, 고베, 나라)을 누르면 지도가 즉시 이동합니다.</li>
+          <li><b>상황 필터</b>에서 <b>☔ 비/실내쾌적</b>, <b>👦 아이들</b> 등을 눌러 날씨와 취향에 맞게 골라보세요.</li>
+          <li>카드의 <b>[+ 장소담기]</b>나 아래쪽 <b>[+ 🛍️ 추천템]</b> 칩을 터치하면 내 바구니에 자동 저장됩니다.</li>
+        </ul>
+        <!-- STEP 2 시각 목업 SVG -->
+        <div class="bg-slate-50 rounded-2xl p-2.5 border border-slate-200/80">
+          <svg viewBox="0 0 340 112" class="w-full h-auto">
+            <!-- 상단 권역 칩 -->
+            <rect x="6" y="6" width="64" height="22" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="38" y="20" text-anchor="middle" fill="#334155" font-size="9" font-weight="bold">🏯 난바</text>
+            <rect x="75" y="6" width="64" height="22" rx="8" fill="#4f46e5"/>
+            <text x="107" y="20" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">⛩️ 교토</text>
+            <rect x="144" y="6" width="76" height="22" rx="8" fill="#0f172a"/>
+            <text x="182" y="20" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">☔ 비/실내쾌적</text>
+
+            <!-- 카드 예시 -->
+            <rect x="6" y="34" width="328" height="72" rx="12" fill="#ffffff" stroke="#c7d2fe" stroke-width="1.5"/>
+            <rect x="16" y="42" width="46" height="15" rx="4" fill="#fef3c7"/>
+            <text x="39" y="52" text-anchor="middle" fill="#92400e" font-size="8" font-weight="bold">🔥 인기 3위</text>
+            <text x="68" y="53" fill="#111827" font-size="10.5" font-weight="bold">신사이바시 파르코 (캐릭터 스트리트)</text>
+
+            <!-- + 장소담기 버튼 -->
+            <rect x="254" y="41" width="70" height="22" rx="7" fill="#4f46e5"/>
+            <text x="289" y="55" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">+ 장소담기</text>
+
+            <!-- 추천템 칩 -->
+            <rect x="16" y="72" width="136" height="24" rx="7" fill="#f1f5f9"/>
+            <text x="84" y="87" text-anchor="middle" fill="#334155" font-size="8.5" font-weight="bold">+ 🛍️ 치이카와 한정 키링</text>
+            <rect x="158" y="72" width="132" height="24" rx="7" fill="#f1f5f9"/>
+            <text x="224" y="87" text-anchor="middle" fill="#334155" font-size="8.5" font-weight="bold">+ 🛍️ 지브리 토토로 문구</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- STEP 3 카드 -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">STEP 3 · 바구니·투표 탭</span>
+          <button onclick="switchTab('basket')" class="text-[11px] font-bold text-indigo-600 underline">바구니 탭 열기 →</button>
+        </div>
+        <h3 class="font-extrabold text-sm text-gray-900">🧺 직접 검색해 담고, 가족 투표로 일정 확정!</h3>
+        <ul class="text-xs text-gray-600 space-y-1 list-disc pl-4">
+          <li>지도에 없는 곳도 상단 입력창에 이름만 치면 <b>자동검색</b>으로 좌표가 연결됩니다.</li>
+          <li>서로의 바구니를 구경하며 <b>[👍 좋아요]</b>와 <b>댓글</b>로 의견을 나눠보세요.</li>
+          <li>일차를 고른 뒤 <b>[🌟 가족확정]</b>을 누르면 <b>통합 가족 바구니</b>로 올라갑니다.</li>
+        </ul>
+        <!-- STEP 3 시각 목업 SVG -->
+        <div class="bg-slate-50 rounded-2xl p-2.5 border border-slate-200/80">
+          <svg viewBox="0 0 340 96" class="w-full h-auto">
+            <rect x="6" y="6" width="328" height="84" rx="12" fill="#ffffff" stroke="#fcd34d" stroke-width="1.5"/>
+            <rect x="16" y="14" width="44" height="16" rx="5" fill="#eff6ff"/>
+            <text x="38" y="25" text-anchor="middle" fill="#1d4ed8" font-size="8.5" font-weight="bold">📍 장소</text>
+            <rect x="65" y="14" width="72" height="16" rx="8" fill="#ecfdf5"/>
+            <text x="101" y="25" text-anchor="middle" fill="#047857" font-size="8" font-weight="bold">📍 위치확정(오사카)</text>
+
+            <text x="16" y="47" fill="#111827" font-size="11" font-weight="bold">유니버설 스튜디오 재팬 (USJ)</text>
+
+            <!-- 하단 투표 & 가족확정 버튼 -->
+            <rect x="16" y="58" width="96" height="24" rx="7" fill="#4f46e5"/>
+            <text x="64" y="73" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">👍 4  영수,예진,연우,정우</text>
+
+            <rect x="196" y="58" width="46" height="24" rx="7" fill="#fffbeb" stroke="#fde68a"/>
+            <text x="219" y="73" text-anchor="middle" fill="#92400e" font-size="9" font-weight="bold">2일차 ▾</text>
+
+            <rect x="247" y="58" width="77" height="24" rx="7" fill="#fbbf24"/>
+            <text x="285" y="73" text-anchor="middle" fill="#1e1b4b" font-size="9" font-weight="bold">🌟 가족확정</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- STEP 4 카드 -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="bg-purple-100 text-purple-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">STEP 4 · 자동루트 & 준비물</span>
+          <button onclick="switchTab('route')" class="text-[11px] font-bold text-indigo-600 underline">자동루트 보기 →</button>
+        </div>
+        <h3 class="font-extrabold text-sm text-gray-900">🧭 원클릭 동선 생성 & 현지 구글맵 길찾기</h3>
+        <ul class="text-xs text-gray-600 space-y-1 list-disc pl-4">
+          <li><b>자동루트·일정 탭</b>: 숙소 출발/복귀 시간 기준으로 가장 가까운 동선과 이동시간을 자동 계산합니다. 현지에서 <b>[📍 구글맵 길찾기]</b>를 누르면 바로 내비게이션이 켜집니다.</li>
+          <li><b>준비물·쇼핑 탭</b>: 실시간 <b>엔화 계산기</b>, 여행 날짜 계절에 맞춘 <b>추천 준비물 일괄담기</b>, 그리고 바구니에서 확정된 <b>살것 리스트</b>를 한 번에 체크합니다.</li>
+        </ul>
+        <!-- STEP 4 시각 목업 SVG -->
+        <div class="bg-slate-50 rounded-2xl p-2.5 border border-slate-200/80">
+          <svg viewBox="0 0 340 88" class="w-full h-auto">
+            <rect x="6" y="6" width="328" height="24" rx="8" fill="#1f2937"/>
+            <text x="18" y="21" fill="#ffffff" font-size="9" font-weight="bold">🏨 출발: 숙소</text>
+            <text x="322" y="21" text-anchor="end" fill="#fcd34d" font-size="9" font-weight="bold">09:30 출발</text>
+
+            <line x1="24" y1="30" x2="24" y2="44" stroke="#818cf8" stroke-width="2"/>
+            <text x="34" y="40" fill="#4338ca" font-size="8.5" font-weight="bold">↓ 🚆 전철 약 18분</text>
+
+            <rect x="6" y="44" width="328" height="38" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+            <circle cx="24" cy="63" r="9" fill="#4f46e5"/>
+            <text x="24" y="67" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">1</text>
+            <text x="40" y="59" fill="#4f46e5" font-size="8" font-weight="bold">09:48 ~ 11:08 (80분 체류)</text>
+            <text x="40" y="72" fill="#111827" font-size="10" font-weight="bold">오사카성 천수각</text>
+            <rect x="244" y="52" width="82" height="22" rx="7" fill="#ecfdf5"/>
+            <text x="285" y="66" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="bold">📍 구글맵 길찾기</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 역할별 꿀팁 & FAQ -->
+      <div class="bg-indigo-50/80 border border-indigo-100 p-4 rounded-3xl space-y-2.5">
+        <h3 class="font-extrabold text-xs text-indigo-950">💡 자주 묻는 질문 & 꿀팁</h3>
+        <div class="space-y-2 text-xs text-gray-700">
+          <div class="bg-white p-3 rounded-2xl border border-indigo-100/70">
+            <div class="font-bold text-indigo-900">Q. 항공편이나 숙소, 날짜는 어디서 바꾸나요?</div>
+            <p class="text-[11px] text-gray-600 mt-0.5"><b>영수(총괄)</b> 프로필로 접속하면 상단 헤더에 나타나는 <b>[⚙️ 큰틀설정]</b> 버튼에서 날짜, 항공편, 숙소 거점을 수정할 수 있습니다.</p>
+          </div>
+          <div class="bg-white p-3 rounded-2xl border border-indigo-100/70">
+            <div class="font-bold text-indigo-900">Q. 바구니 카드에 '⚠️ 위치미정' 빨간 배지가 떠요!</div>
+            <p class="text-[11px] text-gray-600 mt-0.5">자동완성을 선택하지 않고 글자만 입력한 경우입니다. 해당 배지를 터치해 검색 후 <b>[📍 이 위치로 확정]</b>을 눌러주시면 자동루트에 정상 포함됩니다.</p>
+          </div>
+          <div class="bg-white p-3 rounded-2xl border border-indigo-100/70">
+            <div class="font-bold text-indigo-900">Q. '살것(쇼핑)'으로 담은 물건은 루트에 들어가나요?</div>
+            <p class="text-[11px] text-gray-600 mt-0.5">쇼핑 품목은 동선 시간을 차지하지 않도록 자동루트에서는 제외되고, <b>[준비물·쇼핑]</b> 탭의 쇼핑 위시리스트로 자동 연동됩니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- 하단 4탭 내비게이션 -->
+  <!-- 하단 5탭 내비게이션 (사용가이드 탭 추가) -->
   <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30">
-    <div class="max-w-lg mx-auto grid grid-cols-4 text-center text-[11px] font-medium">
+    <div class="max-w-lg mx-auto grid grid-cols-5 text-center text-[10px] font-medium">
       <button onclick="switchTab('map')" id="nav-map" class="py-2 flex flex-col items-center gap-0.5 text-indigo-600 font-bold">
-        <span class="text-lg">🗺️</span>
-        <span>맞춤지도·상점</span>
+        <span class="text-base">🗺️</span>
+        <span>맞춤지도</span>
       </button>
       <button onclick="switchTab('basket')" id="nav-basket" class="py-2 flex flex-col items-center gap-0.5 text-gray-400">
-        <span class="text-lg">🧺</span>
+        <span class="text-base">🧺</span>
         <span>바구니·투표</span>
       </button>
       <button onclick="switchTab('route')" id="nav-route" class="py-2 flex flex-col items-center gap-0.5 text-gray-400">
-        <span class="text-lg">🧭</span>
-        <span>자동루트·일정</span>
+        <span class="text-base">🧭</span>
+        <span>자동루트</span>
       </button>
       <button onclick="switchTab('pack')" id="nav-pack" class="py-2 flex flex-col items-center gap-0.5 text-gray-400">
-        <span class="text-lg">🧳</span>
+        <span class="text-base">🧳</span>
         <span>준비물·쇼핑</span>
+      </button>
+      <button onclick="switchTab('guide')" id="nav-guide" class="py-2 flex flex-col items-center gap-0.5 text-gray-400">
+        <span class="text-base">📘</span>
+        <span>사용가이드</span>
       </button>
     </div>
   </nav>
@@ -1119,7 +1331,7 @@
     };
 
     window.switchTab = (tab) => {
-      ["map", "basket", "route", "pack"].forEach(t => {
+      ["map", "basket", "route", "pack", "guide"].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add("hidden");
         const nav = document.getElementById(`nav-${t}`);
         nav.classList.remove("text-indigo-600", "font-bold");
@@ -1138,6 +1350,8 @@
         setTimeout(() => { routeMap && routeMap.invalidateSize(); renderRouteView(); }, 100);
       } else if (tab === "pack") {
         renderPackView();
+      } else if (tab === "guide") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
 
@@ -2259,7 +2473,6 @@
       onSnapshot(collection(db, "catalog_spots"), async (snap) => {
         const remoteMap = new Map(snap.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
 
-        // 1) 누락된 기본 스팟이나 tags가 없는 문서를 writeBatch로 한 번에 일괄 업서트
         if (!hasSeededCatalog) {
           hasSeededCatalog = true;
           try {
@@ -2278,7 +2491,6 @@
           }
         }
 
-        // 2) 내장 92곳을 기본 베이스로 깔고 Firestore 데이터를 병합 (절대 1곳만 남지 않도록 보장)
         const mergedMap = new Map(DEFAULT_KANSAI_DB.map(s => [s.id, s]));
         remoteMap.forEach((val, key) => {
           mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...val });
