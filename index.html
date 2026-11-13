@@ -11,7 +11,7 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif; background-color: #f3f4f6; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    #exploreMap { height: 290px; width: 100%; border-radius: 1rem; z-index: 10; }
+    #exploreMap { height: 295px; width: 100%; border-radius: 1rem; z-index: 10; }
     #routeMap { height: 250px; width: 100%; border-radius: 1rem; z-index: 10; }
     .custom-pin-wrapper { background: transparent; border: none; }
   </style>
@@ -60,11 +60,13 @@
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">📍 숙소 권역 (출발/복귀 기준)</label>
           <select id="cfgHotelArea" class="w-full bg-gray-50 border rounded-xl px-3 py-2 text-xs">
-            <option value="namba">난바 · 도톤보리</option>
-            <option value="umeda">우메다 · 오사카역</option>
-            <option value="shinsaibashi">신사이바시 · 혼마치</option>
-            <option value="tennoji">덴노지 · 신세카이</option>
-            <option value="usj">유니버설 시티</option>
+            <option value="namba">오사카 · 난바/도톤보리</option>
+            <option value="umeda">오사카 · 우메다/오사카역</option>
+            <option value="shinsaibashi">오사카 · 신사이바시/혼마치</option>
+            <option value="tennoji">오사카 · 덴노지/신세카이</option>
+            <option value="usj">오사카 · 유니버설 시티</option>
+            <option value="kyoto">교토 · 교토역/가와라마치</option>
+            <option value="kobe">고베 · 산노미야/하버랜드</option>
           </select>
         </div>
       </div>
@@ -136,16 +138,16 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- 첫 화면(탭 1): 개인화 지도 탐색 & 편의점·상점 큐레이션 -->
+    <!-- 첫 화면(탭 1): 간사이 전역(오사카·교토·고베·나라) 개인화 지도 탐색 -->
     <!-- ================================================================= -->
     <section id="tab-map" class="space-y-3">
       <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
         <div class="flex justify-between items-center">
           <span id="personaBanner" class="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg">✨ 맞춤 추천 모드</span>
-          <span id="mapAreaBadge" class="text-[11px] font-bold text-gray-500">난바 · 도톤보리</span>
+          <span id="mapAreaBadge" class="text-[11px] font-bold text-gray-500">오사카 · 난바</span>
         </div>
 
-        <!-- 테마 필터 (클릭 시 지도 핀 즉시 필터링) -->
+        <!-- 테마 필터 -->
         <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1" id="mapThemeFilters">
           <button onclick="setMapTheme('persona')" data-theme="persona" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shrink-0">✨ 내 취향맞춤</button>
           <button onclick="setMapTheme('goods')" data-theme="goods" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 shrink-0">🧸 문구·캐릭터</button>
@@ -154,18 +156,19 @@
           <button onclick="setMapTheme('spot')" data-theme="spot" class="mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 shrink-0">🎢 명소·맛집</button>
         </div>
 
-        <!-- 일자별 거점 빠른 이동 -->
+        <!-- 도시·거점 빠른 이동 (오사카·교토·고베·나라) -->
         <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1">
-          <button onclick="flyToArea(34.6687, 135.5013)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">난바/도톤보리</button>
-          <button onclick="flyToArea(34.6745, 135.5005)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">신사이바시</button>
-          <button onclick="flyToArea(34.7024, 135.4959)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">우메다</button>
-          <button onclick="flyToArea(34.6654, 135.4323)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">유니버설(USJ)</button>
-          <button onclick="flyToArea(34.6525, 135.5063)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">덴노지/신세카이</button>
-          <button onclick="flyToArea(34.6873, 135.5262)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">오사카성</button>
+          <button onclick="flyToArea(34.6687, 135.5013, 14)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">오사카(난바)</button>
+          <button onclick="flyToArea(34.7024, 135.4959, 14)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">오사카(우메다)</button>
+          <button onclick="flyToArea(34.6654, 135.4323, 14)" class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold rounded-md shrink-0">유니버설(USJ)</button>
+          <button onclick="flyToArea(35.0036, 135.7681, 13)" class="px-2 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold rounded-md shrink-0">교토(청수사/시내)</button>
+          <button onclick="flyToArea(35.0169, 135.6713, 14)" class="px-2 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold rounded-md shrink-0">교토(아라시야마)</button>
+          <button onclick="flyToArea(34.6850, 135.1880, 14)" class="px-2 py-1 bg-sky-50 text-sky-800 border border-sky-200 text-[11px] font-bold rounded-md shrink-0">고베(하버랜드/시내)</button>
+          <button onclick="flyToArea(34.6851, 135.8328, 14)" class="px-2 py-1 bg-rose-50 text-rose-800 border border-rose-200 text-[11px] font-bold rounded-md shrink-0">나라(사슴공원)</button>
         </div>
 
         <div id="exploreMap"></div>
-        <p class="text-[11px] text-gray-400 text-center" id="mapGuideText">👆 위 테마 버튼을 누르면 해당 장소들이 지도에 핀으로 표시됩니다!</p>
+        <p class="text-[11px] text-gray-400 text-center" id="mapGuideText">👆 도시 버튼이나 테마 버튼을 누르면 주변 핀과 추천템이 자동 갱신됩니다!</p>
       </div>
 
       <div id="mapSpotCards" class="space-y-3"></div>
@@ -202,7 +205,7 @@
             <input type="text" id="itemTitle" placeholder="장소, 메뉴, 살 물건 이름" class="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-2 text-xs" />
           </div>
           <div class="flex gap-1.5">
-            <input type="text" id="itemMemo" placeholder="메모 (예: 10원빵, 쿠루토가 샤프, 동전파스 등)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs" />
+            <input type="text" id="itemMemo" placeholder="메모 (예: 사슴 센베이, 고베규, 청수사 등)" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs" />
             <button onclick="addBasketItem()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-1.5 rounded-xl text-xs shrink-0">담기</button>
           </div>
         </div>
@@ -362,16 +365,20 @@
     };
 
     const HOTEL_AREAS = {
-      namba: { name: "난바 · 도톤보리 숙소", lat: 34.6665, lng: 135.5015 },
-      umeda: { name: "우메다 · 오사카역 숙소", lat: 34.7019, lng: 135.4950 },
-      shinsaibashi: { name: "신사이바시 · 혼마치 숙소", lat: 34.6750, lng: 135.5002 },
-      tennoji: { name: "덴노지 · 신세카이 숙소", lat: 34.6470, lng: 135.5130 },
-      usj: { name: "유니버설 시티 숙소", lat: 34.6680, lng: 135.4380 }
+      namba: { name: "오사카 · 난바/도톤보리 숙소", lat: 34.6665, lng: 135.5015 },
+      umeda: { name: "오사카 · 우메다/오사카역 숙소", lat: 34.7019, lng: 135.4950 },
+      shinsaibashi: { name: "오사카 · 신사이바시 숙소", lat: 34.6750, lng: 135.5002 },
+      tennoji: { name: "오사카 · 덴노지/신세카이 숙소", lat: 34.6470, lng: 135.5130 },
+      usj: { name: "오사카 · 유니버설 시티 숙소", lat: 34.6680, lng: 135.4380 },
+      kyoto: { name: "교토 · 교토역/가와라마치 숙소", lat: 34.9858, lng: 135.7588 },
+      kobe: { name: "고베 · 산노미야/하버랜드 숙소", lat: 34.6937, lng: 135.1955 }
     };
 
-    const OSAKA_CATALOG = [
+    // 간사이 전역(오사카 · 교토 · 고베 · 나라) 통합 추천 카탈로그
+    const KANSAI_CATALOG = [
+      // ================= [오사카] =================
       {
-        name: "신사이바시 파르코 (6층 캐릭터 스트리트)", theme: "goods", itemType: "place", area: "신사이바시", lat: 34.6745, lng: 135.5005, stayMin: 90,
+        city: "오사카", name: "신사이바시 파르코 (6층 캐릭터 스트리트)", theme: "goods", itemType: "place", area: "오사카 · 신사이바시", lat: 34.6745, lng: 135.5005, stayMin: 90,
         storeFeature: "지브리·짱구·치이카와·고질라·리락쿠마 공식샵 총집합 (면세 가능)",
         mustItems: [
           { name: "치이카와(먼작귀) 한정 인형·키링", type: "shop" },
@@ -380,7 +387,7 @@
         ]
       },
       {
-        name: "우메다 로프트 (LOFT) & 한신/한큐 문구코너", theme: "goods", itemType: "place", area: "우메다", lat: 34.7062, lng: 135.4980, stayMin: 80,
+        city: "오사카", name: "우메다 로프트 (LOFT) & 문구코너", theme: "goods", itemType: "place", area: "오사카 · 우메다", lat: 34.7062, lng: 135.4980, stayMin: 80,
         storeFeature: "일본 최대 문구·잡화 플래그십! 한정판 샤프와 스티커 천국",
         mustItems: [
           { name: "쿠루토가 다이브/메탈 샤프", type: "shop" },
@@ -389,7 +396,7 @@
         ]
       },
       {
-        name: "다이마루 우메다 13층 (닌텐도 & 포켓몬센터)", theme: "goods", itemType: "place", area: "우메다", lat: 34.7018, lng: 135.4955, stayMin: 90,
+        city: "오사카", name: "다이마루 우메다 13층 (닌텐도 & 포켓몬센터)", theme: "goods", itemType: "place", area: "오사카 · 우메다", lat: 34.7018, lng: 135.4955, stayMin: 90,
         storeFeature: "닌텐도 오사카·포켓몬센터·원피스·캡콤 스토어 한 층에 밀집 (주말 번호표 주의)",
         mustItems: [
           { name: "마리오·피크민 오사카 한정 굿즈", type: "shop" },
@@ -397,7 +404,7 @@
         ]
       },
       {
-        name: "덴덴타운 & 애니메이트 닛폰바시", theme: "goods", itemType: "place", area: "난바 · 닛폰바시", lat: 34.6615, lng: 135.5056, stayMin: 90,
+        city: "오사카", name: "덴덴타운 & 애니메이트 닛폰바시", theme: "goods", itemType: "place", area: "오사카 · 난바", lat: 34.6615, lng: 135.5056, stayMin: 90,
         storeFeature: "오사카의 아키하바라! 만화·애니 굿즈, 피규어, 대형 가챠샵 밀집",
         mustItems: [
           { name: "하이큐/주술회전/귀멸 아크릴 굿즈", type: "shop" },
@@ -405,16 +412,8 @@
         ]
       },
       {
-        name: "키디랜드 우메다 (한큐 삼번가)", theme: "goods", itemType: "place", area: "우메다", lat: 34.7055, lng: 135.4982, stayMin: 60,
-        storeFeature: "산리오(쿠로미·시나모롤), 스누피, 별의 커비 전문 대형 매장",
-        mustItems: [
-          { name: "산리오 쿠로미·키티 문구세트", type: "shop" },
-          { name: "별의 커비 봉제인형·파우치", type: "shop" }
-        ]
-      },
-      {
-        name: "메가 돈키호테 신세카이점", theme: "value", itemType: "place", area: "덴노지 · 신세카이", lat: 34.6495, lng: 135.5045, stayMin: 90,
-        storeFeature: "도톤보리점보다 통로가 넓고 웨이팅이 적어 가족 쇼핑에 훨씬 쾌적한 초대형점 (면세 전용층)",
+        city: "오사카", name: "메가 돈키호테 신세카이점", theme: "value", itemType: "place", area: "오사카 · 덴노지", lat: 34.6495, lng: 135.5045, stayMin: 90,
+        storeFeature: "도톤보리점보다 통로가 넓고 웨이팅이 적어 가족 쇼핑에 훨씬 쾌적한 초대형점",
         mustItems: [
           { name: "동전파스 & 샤론파스 대용량", type: "shop" },
           { name: "휴족시간 쿨링시트", type: "shop" },
@@ -423,34 +422,25 @@
         ]
       },
       {
-        name: "스기약국 신사이바시스지점 (드럭스토어)", theme: "value", itemType: "place", area: "신사이바시", lat: 34.6725, lng: 135.5012, stayMin: 50,
-        storeFeature: "돈키호테보다 의약품·화장품 가격이 저렴한 편이며 앱/관광객 쿠폰 중복 할인 가능",
+        city: "오사카", name: "스기약국 신사이바시스지점 (드럭스토어)", theme: "value", itemType: "place", area: "오사카 · 신사이바시", lat: 34.6725, lng: 135.5012, stayMin: 50,
+        storeFeature: "의약품·화장품 가성비 우수 & 관광객 쿠폰 중복 할인 가능",
         mustItems: [
           { name: "카베진 알파 300정 (위장약)", type: "shop" },
           { name: "오타이산 소화제 (캔/포)", type: "shop" },
-          { name: "비오레 UV 아쿠아리치 선크림", type: "shop" },
-          { name: "로토 지파이/리세 안약", type: "shop" }
+          { name: "비오레 UV 아쿠아리치 선크림", type: "shop" }
         ]
       },
       {
-        name: "무인양품(MUJI) & 3COINS 난바 플래그십", theme: "value", itemType: "place", area: "난바", lat: 34.6645, lng: 135.5020, stayMin: 60,
-        storeFeature: "한국보다 30~40% 저렴한 무인양품 + 300엔 감성 생활·주방 꿀템 3COINS",
+        city: "오사카", name: "무인양품(MUJI) & 3COINS 난바", theme: "value", itemType: "place", area: "오사카 · 난바", lat: 34.6645, lng: 135.5020, stayMin: 60,
+        storeFeature: "한국보다 30~40% 저렴한 무인양품 + 300엔 감성 생활꿀템 3COINS",
         mustItems: [
           { name: "무인양품 기능성 펜 & 파우치", type: "shop" },
           { name: "3COINS 주방 실리콘·여행 정리백", type: "shop" }
         ]
       },
       {
-        name: "한큐 백화점 우메다 본점 (지하 식품관 & 손수건)", theme: "value", itemType: "place", area: "우메다", lat: 34.7026, lng: 135.4988, stayMin: 70,
-        storeFeature: "1층 명품 브랜드 손수건(2~3천엔대 가성비 선물) & 지하 1층 고급 디저트 성지 (게스트쿠폰 5% 할인)",
-        mustItems: [
-          { name: "비비안웨스트우드/폴로 손수건", type: "shop" },
-          { name: "바통도르(고급 빼빼로) & 슈가버터샌드", type: "shop" }
-        ]
-      },
-      {
-        name: "로손(LAWSON) 도톤보리점", theme: "cvs", itemType: "place", area: "난바 · 도톤보리", lat: 34.6682, lng: 135.5025, stayMin: 20,
-        storeFeature: "디저트와 즉석 치킨류가 가장 강력한 로손! 밤 시간대 간식 털이 필수 코스",
+        city: "오사카", name: "로손(LAWSON) 도톤보리점", theme: "cvs", itemType: "place", area: "오사카 · 난바", lat: 34.6682, lng: 135.5025, stayMin: 20,
+        storeFeature: "디저트와 즉석 치킨류가 가장 강력한 로손! 야식 간식 털이 필수",
         mustItems: [
           { name: "로손 우치카페 프리미엄 모찌롤", type: "food" },
           { name: "가라아게군 (레귤러/치즈 치킨)", type: "food" },
@@ -458,33 +448,23 @@
         ]
       },
       {
-        name: "세븐일레븐 난바역 앞점", theme: "cvs", itemType: "place", area: "난바", lat: 34.6660, lng: 135.5008, stayMin: 20,
+        city: "오사카", name: "세븐일레븐 난바역 앞점", theme: "cvs", itemType: "place", area: "오사카 · 난바", lat: 34.6660, lng: 135.5008, stayMin: 20,
         storeFeature: "즉석 생과일 스무디 기계 보유 점포! 샌드위치와 PB 과자 퀄리티 1위",
         mustItems: [
           { name: "세븐일레븐 타마고산도 (계란샌드위치)", type: "food" },
-          { name: "냉동컵 즉석 스무디 (망고/베리)", type: "food" },
-          { name: "자색고구마칩 & 치즈크래커", type: "food" }
+          { name: "냉동컵 즉석 스무디 (망고/베리)", type: "food" }
         ]
       },
       {
-        name: "패밀리마트 신사이바시점", theme: "cvs", itemType: "place", area: "신사이바시", lat: 34.6738, lng: 135.5018, stayMin: 20,
-        storeFeature: "양말·티셔츠 등 의류 PB와 수플레 푸딩이 유명한 지점",
-        mustItems: [
-          { name: "패미치키 (육즙 가득 순살치킨)", type: "food" },
-          { name: "수플레 푸딩", type: "food" },
-          { name: "패밀리마트 라인 삭스 (양말)", type: "shop" }
-        ]
-      },
-      {
-        name: "도톤보리 글리코상 & 크루즈", theme: "spot", itemType: "place", area: "난바 · 도톤보리", lat: 34.6687, lng: 135.5013, stayMin: 50,
-        storeFeature: "오사카 대표 야경 스팟! 주유패스 이용 시 도톤보리 리버크루즈 무료 탑승",
+        city: "오사카", name: "도톤보리 글리코상 & 리버크루즈", theme: "spot", itemType: "place", area: "오사카 · 난바", lat: 34.6687, lng: 135.5013, stayMin: 50,
+        storeFeature: "오사카 대표 야경 스팟! 주유패스 이용 시 리버크루즈 무료 탑승",
         mustItems: [
           { name: "글리코상 인증샷 & 타코야키 먹방", type: "food" },
           { name: "도톤보리 10원빵", type: "food" }
         ]
       },
       {
-        name: "유니버설 스튜디오 재팬 (USJ)", theme: "spot", itemType: "place", area: "유니버설 시티", lat: 34.6654, lng: 135.4323, stayMin: 360,
+        city: "오사카", name: "유니버설 스튜디오 재팬 (USJ)", theme: "spot", itemType: "place", area: "오사카 · USJ", lat: 34.6654, lng: 135.4323, stayMin: 360,
         storeFeature: "슈퍼 닌텐도 월드 & 해리포터! 아침 오픈런 및 공식 앱 에어리어 정리권 필수",
         mustItems: [
           { name: "마리오 파워업 밴드 & 팝콘통", type: "shop" },
@@ -492,31 +472,152 @@
         ]
       },
       {
-        name: "모토무라 규카츠 난바점", theme: "spot", itemType: "place", area: "난바", lat: 34.6668, lng: 135.5022, stayMin: 70,
+        city: "오사카", name: "모토무라 규카츠 난바점", theme: "spot", itemType: "place", area: "오사카 · 난바", lat: 34.6668, lng: 135.5022, stayMin: 70,
         storeFeature: "개인 화로에 직접 구워 먹는 소고기 규카츠! 오픈 30분 전 대기 추천",
         mustItems: [
           { name: "규카츠 정식 (돌판 구이)", type: "food" }
         ]
       },
       {
-        name: "우메다 공중정원 전망대", theme: "spot", itemType: "place", area: "우메다", lat: 34.7052, lng: 135.4897, stayMin: 70,
-        storeFeature: "해질녘 노을~야경 시간대 최고 뷰! 에스컬레이터 포토존 인기",
-        mustItems: [
-          { name: "공중정원 야경 감상", type: "place" }
-        ]
-      },
-      {
-        name: "오사카성 천수각 & 로드트레인", theme: "spot", itemType: "place", area: "오사카성", lat: 34.6873, lng: 135.5262, stayMin: 90,
+        city: "오사카", name: "오사카성 천수각 & 로드트레인", theme: "spot", itemType: "place", area: "오사카 · 오사카성", lat: 34.6873, lng: 135.5262, stayMin: 90,
         storeFeature: "역에서 천수각까지 걷기 머니 유료 로드트레인(꼬마열차) 탑승 추천",
         mustItems: [
           { name: "오사카성 말차 아이스크림", type: "food" }
         ]
       },
+
+      // ================= [교토] =================
       {
-        name: "신세카이 & 츠텐카쿠 (쿠시카츠 다루마)", theme: "spot", itemType: "place", area: "덴노지 · 신세카이", lat: 34.6525, lng: 135.5063, stayMin: 70,
-        storeFeature: "화려한 복고풍 간판 거리에서 바삭한 튀김 꼬치 즐기기",
+        city: "교토", name: "교토 카와라마치 캐릭터거리 (키디랜드·치이카와·닌텐도)", theme: "goods", itemType: "place", area: "교토 · 카와라마치", lat: 35.0038, lng: 135.7689, stayMin: 90,
+        storeFeature: "교토 타카시마야 닌텐도 교토점 + 치이카와 랜드 + 키디랜드 교토가 한 곳에 밀집!",
         mustItems: [
-          { name: "쿠시카츠 모둠 튀김꼬치", type: "food" }
+          { name: "치이카와 교토 한정 말차·기모노 키링", type: "shop" },
+          { name: "닌텐도 교토 한정 마리오 픽셀 굿즈", type: "shop" },
+          { name: "산리오 교토 한정 문구세트", type: "shop" }
+        ]
+      },
+      {
+        city: "교토", name: "교토 로프트 (LOFT) 미나 카와라마치", theme: "goods", itemType: "place", area: "교토 · 카와라마치", lat: 35.0072, lng: 135.7686, stayMin: 70,
+        storeFeature: "일본 전통 화지 문구, 한정판 샤프, 교토 감성 스티커와 잡화 총집합",
+        mustItems: [
+          { name: "교토 한정 일러스트 마스킹테이프", type: "shop" },
+          { name: "유니 제트스트림 & 쿠루토가 신상 샤프", type: "shop" }
+        ]
+      },
+      {
+        city: "교토", name: "청수사(기요미즈데라) & 산넨자카·니넨자카", theme: "spot", itemType: "place", area: "교토 · 히가시야마", lat: 34.9949, lng: 135.7850, stayMin: 120,
+        storeFeature: "교토 필수 명소! 언덕길 따라 지브리 동구리 공화국, 스누피 초콜릿, 다다미 스타벅스 위치",
+        mustItems: [
+          { name: "산넨자카 지브리(동구리 공화국) 굿즈", type: "shop" },
+          { name: "교토 말차 소프트 아이스크림 & 야츠하시", type: "food" }
+        ]
+      },
+      {
+        city: "교토", name: "후시미 이나리 신사 (천개 도리이) & 치이카와 본점", theme: "spot", itemType: "place", area: "교토 · 후시미", lat: 34.9671, lng: 135.7727, stayMin: 90,
+        storeFeature: "붉은 도리이 터널 명소 + 입구 상점가에 '치이카와 모구모구 본점(교토 후시미점)' 위치!",
+        mustItems: [
+          { name: "치이카와 모구모구 본점 여우 인형·과자", type: "shop" },
+          { name: "이나리 참배길 참새구이·유부초밥 간식", type: "food" }
+        ]
+      },
+      {
+        city: "교토", name: "아라시야마 치쿠린(대나무숲) & 도게츠교", theme: "spot", itemType: "place", area: "교토 · 아라시야마", lat: 35.0169, lng: 135.6713, stayMin: 120,
+        storeFeature: "울창한 대나무숲 산책과 메인 거리의 리락쿠마 찻집, 미피 베이커리, 응커피(% 아라비카)",
+        mustItems: [
+          { name: "아라시야마 유바 치즈 어묵바", type: "food" },
+          { name: "미피 사쿠라 키친 단팥빵 & 교토 한정 굿즈", type: "shop" },
+          { name: "% 아라비카(응커피) 교토 라떼", type: "food" }
+        ]
+      },
+      {
+        city: "교토", name: "스기약국 & 돈키호테 교토 카와라마치점", theme: "value", itemType: "place", area: "교토 · 카와라마치", lat: 35.0055, lng: 135.7685, stayMin: 60,
+        storeFeature: "교토 시내 중심가 면세 쇼핑 스팟! 교토 우지 말차 과자류와 드럭스토어 제품 구매 최적",
+        mustItems: [
+          { name: "교토 우지 말차 킷캣 & 녹차 티백", type: "shop" },
+          { name: "요지야 기름종이 & 핸드크림", type: "shop" }
+        ]
+      },
+      {
+        city: "교토", name: "세븐일레븐 교토 기온점 (전통 간판 점포)", theme: "cvs", itemType: "place", area: "교토 · 기온", lat: 35.0035, lng: 135.7755, stayMin: 20,
+        storeFeature: "교토 경관 조례에 맞춰 흑백 톤 간판을 단 특별한 편의점! 말차 디저트 구비",
+        mustItems: [
+          { name: "교토 한정 우지 말차 모찌·푸딩", type: "food" },
+          { name: "세븐일레븐 타마고산도", type: "food" }
+        ]
+      },
+
+      // ================= [고베] =================
+      {
+        city: "고베", name: "고베 하버랜드 umie & 모자이크 & 호빵맨 박물관", theme: "goods", itemType: "place", area: "고베 · 하버랜드", lat: 34.6788, lng: 135.1825, stayMin: 120,
+        storeFeature: "아이들이 열광하는 호빵맨 어린이 박물관 & 쇼핑몰(1층 무료입장 굿즈샵) + 산리오·디즈니스토어·대관람차!",
+        mustItems: [
+          { name: "호빵맨 잼아저씨 빵공장 캐릭터 빵", type: "food" },
+          { name: "고베 한정 호빵맨·세균맨 굿즈", type: "shop" },
+          { name: "umie 디즈니스토어·산리오 캐릭터 문구", type: "shop" }
+        ]
+      },
+      {
+        city: "고베", name: "산노미야 센터가 & 고베 로프트(LOFT)·키디랜드", theme: "goods", itemType: "place", area: "고베 · 산노미야", lat: 34.6915, lng: 135.1920, stayMin: 80,
+        storeFeature: "비 맞아도 쾌적한 아케이드 상점가! 로프트, 키디랜드, 대형 가챠샵(반다이 크로스 스토어) 밀집",
+        mustItems: [
+          { name: "고베 한정 세일러복·항구 키티/치이카와 키링", type: "shop" },
+          { name: "일본 문구 신상 샤프·지우개", type: "shop" }
+        ]
+      },
+      {
+        city: "고베", name: "고베 동물왕국 (Kobe Animal Kingdom)", theme: "spot", itemType: "place", area: "고베 · 포트아일랜드", lat: 34.6548, lng: 135.2225, stayMin: 150,
+        storeFeature: "울타리 없는 실내형 동물원! 카피바라·알파카·레서판다·넓적부리황새를 코앞에서 만나는 가족 최고 인기 코스",
+        mustItems: [
+          { name: "카피바라 먹이주기 & 한정 봉제인형", type: "shop" },
+          { name: "동물왕국 귀여운 동물 모양 카레·디저트", type: "food" }
+        ]
+      },
+      {
+        city: "고베", name: "난킨마치 (고베 차이나타운) & 아토아(átoa)", theme: "spot", itemType: "place", area: "고베 · 모토마치", lat: 34.6881, lng: 135.1881, stayMin: 90,
+        storeFeature: "일본 3대 차이나타운 길거리 먹방(부타망·고베규 꼬치) & 인근 디지털 아트 수족관 아토아",
+        mustItems: [
+          { name: "로쇼키 돼지고기 만두(부타망) & 10원빵", type: "food" },
+          { name: "고베규 철판 스테이크 꼬치", type: "food" }
+        ]
+      },
+      {
+        city: "고베", name: "메가 돈키호테 & 고베 프란츠(Frantz) 산노미야", theme: "value", itemType: "place", area: "고베 · 산노미야", lat: 34.6930, lng: 135.1905, stayMin: 70,
+        storeFeature: "오사카보다 한적한 면세 쇼핑 + 고베 명물 항아리 푸딩 & 딸기 트뤼플 초콜릿 구매 필수",
+        mustItems: [
+          { name: "고베 프란츠 마법의 항아리 푸딩", type: "food" },
+          { name: "고베 딸기 트뤼플 화이트 초콜릿", type: "shop" }
+        ]
+      },
+      {
+        city: "고베", name: "로손(LAWSON) 고베 하버랜드점", theme: "cvs", itemType: "place", area: "고베 · 하버랜드", lat: 34.6805, lng: 135.1835, stayMin: 20,
+        storeFeature: "하버랜드 야경 산책 전후 간식·음료 보급하기 좋은 역세권 편의점",
+        mustItems: [
+          { name: "로손 모찌롤 & 가라아게군", type: "food" }
+        ]
+      },
+
+      // ================= [나라] =================
+      {
+        city: "나라", name: "나라 공원 (사슴공원) & 도다이지(동대사)", theme: "spot", itemType: "place", area: "나라 · 나라공원", lat: 34.6851, lng: 135.8430, stayMin: 120,
+        storeFeature: "1,200여 마리의 꽃사슴과 교감하며 사슴 센베이 주기 체험 + 세계 최대 목조건물 대불전",
+        mustItems: [
+          { name: "사슴 센베이 (전병 200엔) 체험", type: "place" },
+          { name: "나라 사슴 캐릭터 뿔 머리띠·인형", type: "shop" }
+        ]
+      },
+      {
+        city: "나라", name: "히가시무키 상점가 & 나카타니도 (고속 쑥떡)", theme: "goods", itemType: "place", area: "나라 · 긴테쓰나라역", lat: 34.6828, lng: 135.8292, stayMin: 60,
+        storeFeature: "긴테쓰 나라역 바로 앞 아케이드! 초고속 떡메치기 퍼포먼스로 유명한 나카타니도 & 나라 한정 캐릭터 굿즈샵",
+        mustItems: [
+          { name: "나카타니도 갓 찧은 쑥떡(요모기모치)", type: "food" },
+          { name: "나라 한정 사슴 탈 쓴 치이카와·산리오 키링", type: "shop" }
+        ]
+      },
+      {
+        city: "나라", name: "세븐일레븐 긴테쓰 나라역 앞점", theme: "cvs", itemType: "place", area: "나라 · 나라역", lat: 34.6838, lng: 135.8280, stayMin: 20,
+        storeFeature: "오사카·교토로 이동하는 전철 타기 전 간식과 커피 충전하기 좋은 역 앞 편의점",
+        mustItems: [
+          { name: "세븐일레븐 타마고산도 & 스무디", type: "food" }
         ]
       }
     ];
@@ -537,7 +638,7 @@
       hotel: "숙소 미설정",
       hotelArea: "namba",
       hotelAddr: "영수 아이디로 로그인 후 상단 [⚙️ 큰틀설정]에서 입력하세요.",
-      days: { 1: "난바 · 도톤보리", 2: "유니버설 스튜디오", 3: "우메다 · 쇼핑", 4: "오사카성 · 귀국" }
+      days: { 1: "오사카 · 난바", 2: "유니버설 / 고베", 3: "교토 · 나라", 4: "오사카성 · 귀국" }
     };
 
     let basketItems = [];
@@ -715,7 +816,7 @@
 
       if (tab === "map") {
         initExploreMap();
-        setTimeout(() => { if (exploreMap) { exploreMap.invalidateSize(); renderMapRecommendations(); } }, 100);
+        setTimeout(() => { if (exploreMap) { exploreMap.invalidateSize(); renderMapRecommendations(false); } }, 100);
       } else if (tab === "route") {
         initRouteMap();
         setTimeout(() => { routeMap && routeMap.invalidateSize(); renderRouteView(); }, 100);
@@ -763,10 +864,11 @@
       const memo = document.getElementById("itemMemo").value.trim();
       if (!title) return alert("이름을 입력해 주세요!");
 
-      const matched = OSAKA_CATALOG.find(c => c.name.includes(title) || title.includes(c.name.split(" ")[0]));
+      const matched = KANSAI_CATALOG.find(c => c.name.includes(title) || title.includes(c.name.split(" ")[0]));
 
       await addDoc(collection(db, "basket"), {
         owner: currentUser || "영수",
+        city: matched ? matched.city : "간사이",
         itemType,
         title,
         memo,
@@ -885,7 +987,8 @@
       const hasVoted = likes.includes(currentUser);
       const comments = item.comments || [];
       const m = MEMBERS.find(x => x.name === item.owner) || MEMBERS[0];
-      const searchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("오사카 " + item.title)}`;
+      const cityPrefix = item.city && item.city !== "간사이" ? item.city + " " : "";
+      const searchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cityPrefix + item.title)}`;
 
       let dayOptions = "";
       for (let i = 1; i <= dayCount; i++) {
@@ -944,7 +1047,7 @@
       `;
     }
 
-    // --- 4. 개인화 지도 탐색 & 테마별 핀 동적 필터링 ---
+    // --- 4. 개인화 지도 탐색 & 테마별 핀 동적 필터링 (오사카·교토·고베·나라) ---
     function initExploreMap() {
       if (exploreMap) return;
       exploreMap = L.map("exploreMap").setView([34.6687, 135.5013], 14);
@@ -958,9 +1061,9 @@
       renderMapRecommendations(false);
     }
 
-    window.flyToArea = (lat, lng) => {
+    window.flyToArea = (lat, lng, zoom = 14) => {
       if (!exploreMap) initExploreMap();
-      exploreMap.flyTo([lat, lng], 15, { duration: 0.7 });
+      exploreMap.flyTo([lat, lng], zoom, { duration: 0.7 });
     };
 
     window.setMapTheme = (theme) => {
@@ -969,7 +1072,7 @@
         const active = b.dataset.theme === theme;
         b.className = `mtheme-btn px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${active ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600'}`;
       });
-      renderMapRecommendations(true);
+      renderMapRecommendations(false);
     };
 
     function calcDistKm(lat1, lng1, lat2, lng2) {
@@ -980,21 +1083,18 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    function renderMapRecommendations(shouldAutoFit = false) {
+    function renderMapRecommendations() {
       if (!exploreMap) return;
       const center = exploreMap.getCenter();
       const member = MEMBERS.find(m => m.name === currentUser) || MEMBERS[0];
 
-      // 특정 테마(goods, value, cvs, spot)를 누르면 해당 장소들만 필터링하여 지도에 핀 표시
-      // 'persona'(내 취향맞춤)일 때는 전체 장소를 표시하되 본인 취향 핀을 별표 강조 표시
-      const filteredCatalog = OSAKA_CATALOG.map((spot, idx) => ({ ...spot, idx }))
+      const filteredCatalog = KANSAI_CATALOG.map((spot, idx) => ({ ...spot, idx }))
         .filter(spot => mapTheme === "persona" || spot.theme === mapTheme);
 
       // 지도 위 핀 갱신
       if (exploreMarkerLayer) {
         exploreMarkerLayer.clearLayers();
         exploreMarkersByIdx = {};
-        const visibleCoords = [];
 
         filteredCatalog.forEach(spot => {
           const style = THEME_PIN_STYLE[spot.theme] || THEME_PIN_STYLE.spot;
@@ -1011,8 +1111,8 @@
 
           const marker = L.marker([spot.lat, spot.lng], { icon }).addTo(exploreMarkerLayer);
           marker.bindPopup(`
-            <div style="min-width:170px;">
-              <div style="font-size:10px;font-weight:bold;color:${style.bg};">${style.emoji} ${style.label}</div>
+            <div style="min-width:175px;">
+              <div style="font-size:10px;font-weight:bold;color:${style.bg};">[${spot.city}] ${style.emoji} ${style.label}</div>
               <div style="font-weight:bold;font-size:13px;margin:2px 0;">${spot.name}</div>
               <div style="font-size:11px;color:#555;margin-bottom:6px;">${spot.storeFeature}</div>
               <button onclick="addCatalogPlace(${spot.idx})" style="width:100%;background:#4f46e5;color:white;border:none;padding:5px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;">
@@ -1021,28 +1121,21 @@
             </div>
           `);
           exploreMarkersByIdx[spot.idx] = marker;
-          visibleCoords.push([spot.lat, spot.lng]);
         });
-
-        // 테마 버튼을 직접 클릭했을 때 해당 핀들이 한눈에 보이도록 지도 범위 자동 조정
-        if (shouldAutoFit && visibleCoords.length > 0) {
-          const bounds = L.latLngBounds(visibleCoords);
-          exploreMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
-        }
       }
 
       // 안내 문구 업데이트
       const guideEl = document.getElementById("mapGuideText");
       if (guideEl) {
         if (mapTheme === "persona") {
-          guideEl.innerHTML = `✨ 현재 <b>${member.name}</b> 취향 핀이 노란 테두리로 강조되어 있습니다!`;
+          guideEl.innerHTML = `✨ 오사카·교토·고베·나라 전역의 <b>${member.name}</b> 취향 핀이 강조되어 있습니다!`;
         } else {
           const tInfo = THEME_PIN_STYLE[mapTheme];
-          guideEl.innerHTML = `${tInfo.emoji} 지도에 <b>${tInfo.label}</b> 추천 장소 <b>${filteredCatalog.length}곳</b>의 핀이 표시되었습니다!`;
+          guideEl.innerHTML = `${tInfo.emoji} 간사이 전역의 <b>${tInfo.label}</b> 추천 장소 <b>${filteredCatalog.length}곳</b>이 핀으로 표시되었습니다!`;
         }
       }
 
-      // 하단 추천 카드 정렬 (거리순 + 취향 우선)
+      // 하단 추천 카드 정렬 (현재 지도가 보고 있는 도시/중심점 거리순 + 취향 우선)
       const sorted = filteredCatalog.map(spot => {
         const dist = calcDistKm(center.lat, center.lng, spot.lat, spot.lng);
         const themeBonus = (mapTheme === "persona" && spot.theme === member.persona) ? -1.8 : 0;
@@ -1061,7 +1154,8 @@
           <div class="bg-white p-3.5 rounded-2xl shadow-sm border ${isPersonaMatch ? 'border-indigo-200' : 'border-gray-100'} space-y-2">
             <div class="flex justify-between items-start gap-2">
               <div onclick="focusCatalogSpot(${spot.idx})" class="cursor-pointer">
-                <div class="flex items-center gap-1.5 mb-0.5">
+                <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+                  <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-800 text-white">${spot.city}</span>
                   <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">${style.emoji} ${style.label}</span>
                   ${isPersonaMatch ? `<span class="text-[10px] font-extrabold bg-indigo-600 text-white px-1.5 py-0.5 rounded">✨ ${member.name} 추천</span>` : ''}
                   <span class="text-[11px] text-gray-400">중심에서 ${distStr}</span>
@@ -1074,15 +1168,15 @@
             </div>
 
             <div class="bg-amber-50/80 text-amber-900 text-[11px] px-2.5 py-1.5 rounded-xl font-medium">
-              💡 <b>매장 특징:</b> ${spot.storeFeature}
+              💡 <b>장소·매장 특징:</b> ${spot.storeFeature}
             </div>
 
             <div>
-              <div class="text-[10px] font-bold text-gray-400 mb-1">🛒 이 매장 필수 추천템 (터치하면 내 바구니에 쏙!)</div>
+              <div class="text-[10px] font-bold text-gray-400 mb-1">🛒 추천템 · 즐길거리 (터치하면 내 바구니에 쏙!)</div>
               <div class="flex flex-wrap gap-1.5">
                 ${spot.mustItems.map((mItem, mIdx) => `
                   <button onclick="addCatalogMustItem(${spot.idx}, ${mIdx})" class="text-[11px] bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 text-gray-700 px-2.5 py-1 rounded-lg font-semibold transition">
-                    + ${mItem.type === 'food' ? '🍜' : '🛍️'} ${mItem.name}
+                    + ${mItem.type === 'food' ? '🍜' : (mItem.type === 'place' ? '📍' : '🛍️')} ${mItem.name}
                   </button>
                 `).join("")}
               </div>
@@ -1093,7 +1187,7 @@
     }
 
     window.focusCatalogSpot = (idx) => {
-      const spot = OSAKA_CATALOG[idx];
+      const spot = KANSAI_CATALOG[idx];
       if (!spot || !exploreMap) return;
       exploreMap.flyTo([spot.lat, spot.lng], 16, { duration: 0.6 });
       setTimeout(() => {
@@ -1103,11 +1197,12 @@
 
     window.addCatalogPlace = async (idx) => {
       if (!db) return alert("Firebase 연결을 확인해 주세요!");
-      const spot = OSAKA_CATALOG[idx];
+      const spot = KANSAI_CATALOG[idx];
       await addDoc(collection(db, "basket"), {
         owner: currentUser || "영수",
+        city: spot.city,
         itemType: "place",
-        title: spot.name,
+        title: `[${spot.city}] ${spot.name}`,
         memo: spot.storeFeature,
         lat: spot.lat,
         lng: spot.lng,
@@ -1118,18 +1213,19 @@
         assignedDay: 1,
         createdAt: Date.now()
       });
-      alert(`📍 '${spot.name}'을(를) ${currentUser}의 개인 바구니에 담았습니다!`);
+      alert(`📍 '[${spot.city}] ${spot.name}'을(를) ${currentUser}의 개인 바구니에 담았습니다!`);
     };
 
     window.addCatalogMustItem = async (spotIdx, mIdx) => {
       if (!db) return alert("Firebase 연결을 확인해 주세요!");
-      const spot = OSAKA_CATALOG[spotIdx];
+      const spot = KANSAI_CATALOG[spotIdx];
       const mItem = spot.mustItems[mIdx];
       await addDoc(collection(db, "basket"), {
         owner: currentUser || "영수",
+        city: spot.city,
         itemType: mItem.type,
         title: mItem.name,
-        memo: `추천 매장: ${spot.name}`,
+        memo: `[${spot.city}] ${spot.name}`,
         lat: spot.lat,
         lng: spot.lng,
         stayMin: 30,
@@ -1188,6 +1284,7 @@
 
       let unvisited = candidates.map(c => ({
         title: c.title,
+        city: c.city || "간사이",
         itemType: c.itemType,
         lat: c.lat || hotel.lat + (Math.random() - 0.5) * 0.01,
         lng: c.lng || hotel.lng + (Math.random() - 0.5) * 0.01,
@@ -1204,15 +1301,16 @@
         unvisited.sort((a, b) => calcDistKm(curLat, curLng, a.lat, a.lng) - calcDistKm(curLat, curLng, b.lat, b.lng));
         const next = unvisited.shift();
         const dist = calcDistKm(curLat, curLng, next.lat, next.lng);
-        const transitMin = dist < 0.8 ? Math.max(5, Math.round(dist * 15)) : Math.max(12, Math.round(dist * 4 + 10));
-        const transitMode = dist < 0.8 ? `🚶 도보 약 ${transitMin}분` : `🚇 지하철/전철 약 ${transitMin}분`;
+        const transitMin = dist < 0.8 ? Math.max(5, Math.round(dist * 15)) : Math.max(15, Math.round(dist * 1.6 + 12));
+        const transitMode = dist < 0.8 ? `🚶 도보 약 ${transitMin}분` : `🚆 전철/신쾌속 약 ${transitMin}분`;
 
         const returnDist = calcDistKm(next.lat, next.lng, hotel.lat, hotel.lng);
-        const returnMin = returnDist < 0.8 ? 8 : Math.round(returnDist * 4 + 10);
+        const returnMin = returnDist < 0.8 ? 8 : Math.round(returnDist * 1.6 + 12);
 
-        if (usedMin + transitMin + next.stayMin + returnMin <= maxBudgetMin + 30) {
+        if (usedMin + transitMin + next.stayMin + returnMin <= maxBudgetMin + 45) {
           ordered.push({
             title: next.title,
+            city: next.city,
             itemType: next.itemType,
             lat: next.lat,
             lng: next.lng,
@@ -1318,11 +1416,13 @@
         const leaveStr = minToTime(curMin);
         coords.push([s.lat, s.lng]);
 
-        const gmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent("오사카 " + s.title)}&travelmode=transit`;
+        const cleanDest = s.title.replace(/^\[.*?\]\s*/, "");
+        const cityStr = s.city && s.city !== "간사이" ? s.city + " " : "";
+        const gmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(cityStr + cleanDest)}&travelmode=transit`;
 
         html += `
           <div class="pl-4 border-l-2 border-indigo-300 ml-4 py-1 text-[11px] text-indigo-700 font-bold flex items-center gap-1.5">
-            <span>↓</span><span>${s.transitMode || '🚇 이동 약 15분'}</span>
+            <span>↓</span><span>${s.transitMode || '🚆 이동 약 20분'}</span>
           </div>
           <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2">
             <div class="flex justify-between items-start gap-2">
@@ -1352,13 +1452,13 @@
 
       const last = rDoc.stops[rDoc.stops.length - 1];
       const backDist = calcDistKm(last.lat, last.lng, hotel.lat, hotel.lng);
-      const backMin = backDist < 0.8 ? 8 : Math.round(backDist * 4 + 10);
+      const backMin = backDist < 0.8 ? 8 : Math.round(backDist * 1.6 + 12);
       curMin += backMin;
       coords.push([hotel.lat, hotel.lng]);
 
       html += `
         <div class="pl-4 border-l-2 border-indigo-300 ml-4 py-1 text-[11px] text-indigo-700 font-bold">
-          ↓ 🚇 숙소 복귀 이동 (약 ${backMin}분)
+          ↓ 🚆 숙소 복귀 이동 (약 ${backMin}분)
         </div>
         <div class="bg-gray-800 text-white px-4 py-2.5 rounded-2xl flex justify-between items-center text-xs">
           <span class="font-bold">🏨 복귀: ${masterConfig.hotel}</span>
@@ -1446,7 +1546,7 @@
     function renderAll() {
       renderBriefing();
       renderBasket();
-      renderMapRecommendations(false);
+      renderMapRecommendations();
       renderRouteView();
       renderPackView();
     }
