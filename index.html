@@ -904,8 +904,8 @@
     function initExploreMap() {
       if (exploreMap) return;
       exploreMap = L.map("exploreMap").setView([34.6687, 135.5013], 15);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap", maxZoom: 19
+      L.tileLayer("https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}", {
+        attribution: "© Google Maps", maxZoom: 20
       }).addTo(exploreMap);
 
       OSAKA_CATALOG.forEach((spot, idx) => {
@@ -1041,8 +1041,8 @@
     function initRouteMap() {
       if (routeMap) return;
       routeMap = L.map("routeMap").setView([34.6687, 135.5013], 13);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap", maxZoom: 18
+      L.tileLayer("https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}", {
+        attribution: "© Google Maps", maxZoom: 20
       }).addTo(routeMap);
       routeLayerGroup = L.layerGroup().addTo(routeMap);
     }
