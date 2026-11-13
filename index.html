@@ -302,7 +302,7 @@
     </section>
 
     <!-- ================================================================= -->
-    <!-- 탭 3: 스마트 자동 루트 & 중간/최종 타임라인 (좌우 화살표 버튼 포함) -->
+    <!-- 탭 3: 스마트 자동 루트 & 중간/최종 타임라인 (초기화 버튼 포함) -->
     <!-- ================================================================= -->
     <section id="tab-route" class="hidden space-y-3">
       <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-1.5">
@@ -331,19 +331,24 @@
             <input type="time" id="routeEndTime" value="21:00" class="w-full font-bold text-sm bg-transparent focus:outline-none" />
           </div>
         </div>
-        <button onclick="generateAutoRoute()" class="w-full bg-amber-400 hover:bg-amber-300 text-indigo-950 font-extrabold py-2.5 rounded-xl text-xs shadow transition">
+        <button id="generateRouteBtn" onclick="generateAutoRoute()" class="w-full bg-amber-400 hover:bg-amber-300 text-indigo-950 font-extrabold py-2.5 rounded-xl text-xs shadow transition">
           ✨ 통합 바구니 기반 최적 루트 자동 그리기 (중간버전 생성)
         </button>
       </div>
 
-      <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
+      <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap justify-between items-center gap-2">
         <div class="flex items-center gap-2">
           <span id="routeStatusBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800">📝 중간 버전 (초안)</span>
           <span class="text-xs text-gray-500" id="routeTotalSummary">총 0곳</span>
         </div>
-        <button id="confirmFinalBtn" onclick="toggleFinalRoute()" class="hidden text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">
-          🌟 최종 루트 확정
-        </button>
+        <div id="routeMasterActions" class="hidden flex items-center gap-1.5">
+          <button id="resetRouteBtn" onclick="resetCurrentDayRoute()" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition">
+            🗑️ 초기화
+          </button>
+          <button id="confirmFinalBtn" onclick="toggleFinalRoute()" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition">
+            🌟 최종 루트 확정
+          </button>
+        </div>
       </div>
 
       <div class="bg-white p-2.5 rounded-2xl shadow-sm border border-gray-100">
@@ -902,7 +907,7 @@
       const isMaster = currentUser === "영수";
       document.getElementById("masterEditBtn").classList.toggle("hidden", !isMaster);
       document.getElementById("autoRouteGeneratorBox").classList.toggle("hidden", !isMaster);
-      document.getElementById("confirmFinalBtn").classList.toggle("hidden", !isMaster);
+      document.getElementById("routeMasterActions").classList.toggle("hidden", !isMaster);
 
       const banner = document.getElementById("personaBanner");
       if (m.persona === "goods") banner.innerText = `✨ ${m.name} 맞춤: 문구 · 캐릭터 성지 우선`;
@@ -1772,7 +1777,19 @@
         stops: ordered
       });
 
-      alert(`✨ ${formatDayLabel(currentRouteDay)} 중간 버전(초안) 루트가 자동 생성되었습니다!`);
+      alert(`✨ ${formatDayLabel(currentRouteDay)} 중간 버전(초안) 루트가 최신 바구니 기준으로 생성되었습니다!`);
+    };
+
+    window.resetCurrentDayRoute = async () => {
+      if (!db) return alert("Firebase 연결을 확인해 주세요!");
+      const rDoc = routeDocs[`day_${currentRouteDay}`];
+      if (!rDoc || !rDoc.stops || rDoc.stops.length === 0) {
+        return alert("이미 초기화된 상태입니다.");
+      }
+      if (!confirm(`${formatDayLabel(currentRouteDay)}의 생성된 루트 일정을 모두 초기화할까요?\n(초기화 후 바구니 변경사항을 반영해 다시 그릴 수 있습니다.)`)) {
+        return;
+      }
+      await deleteDoc(doc(db, "routes", `day_${currentRouteDay}`));
     };
 
     window.adjustStopStay = async (idx, delta) => {
@@ -1820,19 +1837,30 @@
       const rDoc = routeDocs[`day_${currentRouteDay}`];
       const hotel = HOTEL_AREAS[masterConfig.hotelArea || "namba"] || HOTEL_AREAS.namba;
       const timelineBox = document.getElementById("routeTimeline");
+      const genBtn = document.getElementById("generateRouteBtn");
+      const resetBtn = document.getElementById("resetRouteBtn");
+      const confirmBtn = document.getElementById("confirmFinalBtn");
 
       if (routeLayerGroup) routeLayerGroup.clearLayers();
 
       if (!rDoc || !rDoc.stops || rDoc.stops.length === 0) {
-        document.getElementById("routeStatusBadge").innerText = "미생성";
+        document.getElementById("routeStatusBadge").className = "text-xs font-extrabold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600";
+        document.getElementById("routeStatusBadge").innerText = "미생성 (초기상태)";
         document.getElementById("routeTotalSummary").innerText = "통합 바구니를 채운 후 자동 생성하세요";
+        if (genBtn) genBtn.innerText = "✨ 통합 바구니 기반 최적 루트 자동 그리기 (중간버전 생성)";
+        if (resetBtn) resetBtn.classList.add("hidden");
+        if (confirmBtn) confirmBtn.classList.add("hidden");
+
         timelineBox.innerHTML = `<div class="text-center text-gray-400 text-xs py-8 bg-white rounded-2xl">아직 ${formatDayLabel(currentRouteDay)} 루트가 없습니다.<br>통합 바구니에 일정을 담은 뒤 상단 <b>[✨ 최적 루트 자동 그리기]</b>를 눌러보세요!</div>`;
         if (routeMap) routeMap.setView([hotel.lat, hotel.lng], 13);
         return;
       }
 
+      if (genBtn) genBtn.innerText = "🔄 바구니 변경사항 반영해 다시 그리기";
+      if (resetBtn) resetBtn.classList.remove("hidden");
+      if (confirmBtn) confirmBtn.classList.remove("hidden");
+
       const badge = document.getElementById("routeStatusBadge");
-      const confirmBtn = document.getElementById("confirmFinalBtn");
       if (rDoc.isFinal) {
         badge.className = "text-xs font-extrabold px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800";
         badge.innerText = "🌟 최종 확정 루트";
